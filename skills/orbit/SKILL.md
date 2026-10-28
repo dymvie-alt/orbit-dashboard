@@ -3,27 +3,56 @@ name: orbit
 description: Orbit Dashboard — Continuous, passive (zero-touch), bird's-eye project monitoring companion. Automatically detects project workflow (Shraga, Plan.md, or Git), inherits project design system, and renders a 100dvh zero-scroll dashboard in chat or standalone browser. Triggered by /orbit, דשבורד, DASHBOARD, DASH, dash.
 ---
 
-# 🛰️ Orbit Dashboard — Skill Specification
+# 🛰️ Orbit Dashboard — Skill Playbook
 
-Orbit Dashboard is your intelligent development companion, providing a continuous bird's-eye view of your project's live progress. Operating in a completely passive and secure read-only mode, Orbit observes your workspace without modifying or polluting any files in your codebase.
+Orbit Dashboard is your intelligent development companion for Google Antigravity. It delivers a continuous, single-glance ("מעוף הציפור") view of your project's progress in real time without altering or polluting a single file in your codebase.
 
-## 📌 Triggers
+## 📌 Activation Triggers
 - Slash commands: `/orbit`, `/dashboard`, `/dash`
-- Hebrew triggers: `דשבורד`, `מעוף הציפור`, `סטטוס פרויקט`, `רענן דשבורד`, `הפעל דשבורד`
-- English triggers: `dashboard`, `orbit`, `project status`, `bird's eye view`
+- Hebrew keywords: `דשבורד`, `מעוף הציפור`, `סטטוס פרויקט`, `רענן דשבורד`, `הפעל דשבורד`
+- English keywords: `orbit`, `dashboard`, `bird's eye view`, `project companion`
 
-## 🎯 Core Operating Principles
-1. **Strict Zero-Footprint (Read-Only):** Under NO circumstance shall Orbit write, create, modify, or delete any file in the target project directory. All telemetry, caches, and HTML outputs are saved to the isolated user space:
-   `~/.gemini/antigravity/orbit/projects/<project-hash>/`
-2. **Honest State Machine:**
-   - `✓` Verified Completed
-   - `⚡` Active in progress
-   - `○` Planned future
-3. **Screen Budget:** Strict `100dvh` layout with zero vertical window scrollbar.
-4. **Dual Display:** Renders both inline via `<agent-embed>` and opens in a standalone browser window with flicker-free live DOM soft-sync.
-5. **Multi-Project Isolation:** Each project is hashed and managed in its own isolated state chamber.
+---
 
-## 🗺️ Workflow Adapters
-1. **Shraga Adapter (`shraga/`):** Full 7-stage lifecycle (`PHASE.md`, `Plan.md`, reports, reviews, verdicts, quality gates).
-2. **Milestone Adapter (`Plan.md` / `ROADMAP.md`):** Phase breakdown, milestone checklists, sprint tracking.
-3. **Generic Git & Activity Adapter:** Git commits, test health (`npm test`, `pytest`), with a transparency notice stating no macro roadmap is defined.
+## 🧭 Workflow & Interaction Lifecycle
+
+### Phase 1: Onboarding Dialogue (When activated without explicit parameters)
+1. **Target Project Ingestion:**
+   If the target directory is not explicitly stated in the user's prompt, invoke `ask_question`:
+   - **Question 1:** "איזה פרויקט תרצה ש-Orbit ילווה כעת?"
+     - Options:
+       - `(Recommended) תיקיית סביבת העבודה הנוכחית (<current-workspace>)`
+       - `נתיב אחר במחשב`
+   - **Question 2:** "באיזו תדירות להפעיל סריקה פסיבית שקטה ברקע?"
+     - Options:
+       - `(Recommended) כל 2 דקות (אידיאלי לעבודה שוטפת)`
+       - `כל דקה (לסבבי פיתוח מהירים)`
+       - `כל 5 דקות (חסכוני במשאבים)`
+       - `ידני בלבד (ללא ניטור רקע)`
+
+2. **Immediate Execution (Zero-Footprint):**
+   Execute the background scanner:
+   ```powershell
+   node "C:\Users\dymvi\.gemini\config\plugins\orbit-dashboard\scripts\orbit-scanner.mjs" --project "<target-path>" --frequency "<chosen-frequency>"
+   ```
+
+3. **Presentation & Dual-Display:**
+   - Report the detected adapter (`Shraga First-Class Harness`, `Plan.md Adapter`, or `Generic Git`).
+   - Display the Active Phase, current stage, and test metrics.
+   - Provide the direct clickable link to open the standalone zero-scroll dashboard in an external browser for second-monitor workflows:
+     `[פתח את Orbit Dashboard בדפדפן / מסך שני](file:///<storageDir>/index.html)`
+   - Also copy or save the artifact into the conversation artifact space if inline embed is preferred.
+
+4. **Background Daemon Scheduling:**
+   If automatic polling was requested (e.g. every 2 minutes), schedule a background recurring job via the `schedule` tool:
+   - For 2 minutes: CronExpression: `*/2 * * * *`
+   - Prompt: `"Orbit Daemon: בצע סריקת עדכון שקטה לפרויקט <target-path> ורענן את orbit-state.json"`
+   - Note: The background task silently updates the JSON and HTML file in isolated storage, allowing the browser window to soft-sync without interrupting the user.
+
+---
+
+### Phase 2: On-Demand Refresh (`/orbit refresh` or `דשבורד רענן`)
+When the user asks to refresh or calls `/orbit refresh`:
+1. Immediately re-run `orbit-scanner.mjs` on the active project.
+2. Provide a 2-line summary of newly detected commits, tests passed, or stage advances.
+3. Link to the refreshed dashboard.
