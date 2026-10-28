@@ -1,8 +1,8 @@
 {
   "name": "orbit-dashboard",
   "displayName": "Orbit Dashboard — Project Companion",
-  "version": "1.0.0",
-  "description": "דשבורד מעוף הציפור למעקב רציף, פסיבי (Zero-Footprint) ומאובטח אחר התקדמות הפרויקט בזמן אמת. תומך בפלואו שרגא, תוכניות פאזות עצמאיות, פעילות Git שוטפת, תקציב 100dvh ללא גלילה ואירוח כפול (Chat + Browser).",
+  "version": "1.1.0",
+  "description": "דשבורד מעוף הציפור למעקב רציף, פסיבי (Zero-Footprint) ומאובטח אחר התקדמות הפרויקט בזמן אמת. תומך בפלואו שרגא, תוכניות פאזות עצמאיות, פעילות Git שוטפת, עברית תקנית RTL עם מונחי מקור, מנוע עיצוב אדפטיבי (Light/Dark) ותקציב 100dvh ללא גלילה.",
   "suggestedPrompts": [
     "/orbit",
     "הפעל את Orbit Dashboard",
@@ -20,6 +20,8 @@
     "zero-footprint",
     "companion",
     "monitor",
-    "100dvh"
+    "100dvh",
+    "rtl",
+    "hebrew"
   ]
 }

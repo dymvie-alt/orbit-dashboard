@@ -85,9 +85,9 @@ console.assert(shragaState.adapterName.includes('Shraga'), 'Should identify Shra
 console.assert(shragaState.activePhaseIndex === 2, `Expected active phase 2, got ${shragaState.activePhaseIndex}`);
 console.assert(shragaState.projectName.includes('קל כסף'), `Expected project name containing 'קל כסף', got ${shragaState.projectName}`);
 console.assert(shragaState.phases.length === 4, `Expected 4 phases, got ${shragaState.phases.length}`);
-console.assert(shragaState.phases[1].verdict === 'Approved with conditions', 'Should extract review verdict');
+console.assert(shragaState.phases[1].verdict.includes('Approved with conditions'), 'Should extract review verdict');
 console.assert(shragaState.phases[1].testsCount === '119', 'Should extract test count');
-console.assert(shragaState.theme && shragaState.theme.primary === '#7c3aed', 'Should extract theme color');
+console.assert(shragaState.theme && shragaState.theme.primary.toLowerCase() === '#7c3aed', 'Should extract theme color');
 console.log('✓ Shraga Adapter passed all assertions.');
 
 // 2. Test Plan Adapter

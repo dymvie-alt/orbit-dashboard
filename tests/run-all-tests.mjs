@@ -7,8 +7,12 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import { AdapterOrchestrator } from '../adapters/adapter-orchestrator.mjs';
 import { runOrbitScan } from '../scripts/orbit-scanner.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('================================================================================');
 console.log('        🛰️  ORBIT DASHBOARD — COMPREHENSIVE QA TEST SUITE (PHASE 4)             ');
@@ -72,7 +76,7 @@ try {
 
   const shragaParsed = AdapterOrchestrator.scanProject(shragaDir);
   const tc3Pass = shragaParsed.activePhaseIndex === 3 &&
-                  shragaParsed.phases[2].verdict === 'Approved with conditions' &&
+                  shragaParsed.phases[2].verdict.includes('Approved with conditions') &&
                   shragaParsed.phases[2].testsCount === '235' &&
                   shragaParsed.phases[3].suggestedPrompt.includes('פאזה 3');
   recordTest('TC-03', 'Shraga Lifecycle Coverage', 'Adapters', tc3Pass, 'Phase 3 active, 235 tests, verdict parsed');
@@ -125,7 +129,7 @@ try {
   // ==========================================
   // SUITE D: UI & ERGONOMICS (Generative UI)
   // ==========================================
-  const templatePath = path.join(process.cwd(), 'templates', 'orbit-view.html');
+  const templatePath = path.join(__dirname, '..', 'templates', 'orbit-view.html');
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
   // TC-09: 100dvh Layout Budget

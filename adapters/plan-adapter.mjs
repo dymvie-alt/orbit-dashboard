@@ -1,10 +1,12 @@
 /**
  * Orbit Dashboard - Plan / Milestone Adapter
  * Read-Only parser for standalone Plan.md, ROADMAP.md, tasks.md
+ * Integrated with HebrewNormalizer for natural Hebrew (RTL) presentation with original LTR terms.
  */
 
 import fs from 'fs';
 import path from 'path';
+import { HebrewNormalizer } from './hebrew-normalizer.mjs';
 
 export class PlanAdapter {
   static getPlanFile(projectPath) {
@@ -36,19 +38,23 @@ export class PlanAdapter {
     const h1Match = planContent.match(/^#\s+(.+)$/m);
     if (h1Match) {
       projectName = h1Match[1].replace(/^[#\s🛰️🪙📋]+/, '').trim();
+      if (projectName.includes(' - ')) {
+        projectName = projectName.split(' - ')[0].trim();
+      }
     }
 
     const phases = [];
-    // Match headers like "## Phase 1: ...", "### פאזה 2: ...", "## 1. Setup"
     const sectionRegex = /(?:^|\n)#{2,3}\s*(?:(?:פאזה|Phase)\s*(\d+)[:\s\-]+|(\d+)[\.\)]\s+)([^\n]+)([\s\S]*?)(?=(?:\n#{2,3}\s*(?:(?:פאזה|Phase)\s*\d+|\d+[\.\)]))|$)/gi;
     let sectionMatch;
     let fallbackIndex = 0;
 
     while ((sectionMatch = sectionRegex.exec(planContent)) !== null) {
       const pNum = sectionMatch[1] ? parseInt(sectionMatch[1], 10) : (sectionMatch[2] ? parseInt(sectionMatch[2], 10) : fallbackIndex);
-      const pTitle = sectionMatch[3].trim();
+      const rawTitle = sectionMatch[3].trim();
       const pBody = sectionMatch[4];
       fallbackIndex++;
+
+      const pTitle = HebrewNormalizer.normalizePhaseTitle(rawTitle, pNum);
 
       const deliverables = [];
       const taskRegex = /[-*]\s*(?:\[([ xX])\])?\s*([^\n]+)/g;
@@ -73,12 +79,18 @@ export class PlanAdapter {
         });
       }
 
+      const rawDesc = pBody.split('\n').find(line => {
+        const l = line.trim();
+        return l.length > 10 && !l.startsWith('-') && !l.startsWith('*') && !l.startsWith('#') && !l.startsWith('|');
+      }) || `תוכנית עבודה עבור שלב ${pNum}.`;
+
       phases.push({
         phaseNum: pNum,
         title: pTitle,
-        subtitle: `${deliverables.length} משימות`,
+        rawTitle,
+        subtitle: `שלב ${pNum} · ${deliverables.length} משימות`,
         status: 'planned',
-        description: pBody.split('\n').find(line => line.trim().length > 10 && !line.startsWith('-') && !line.startsWith('*')) || `תוכנית עבודה עבור שלב ${pNum}.`,
+        description: HebrewNormalizer.cleanDescription(rawDesc),
         deliverables: deliverables.length > 0 ? deliverables : [
           { status: 'planned', title: pTitle, desc: 'משימת פאזה ראשית' }
         ]
@@ -96,17 +108,16 @@ export class PlanAdapter {
       }
     }
 
-    // Set statuses accordingly
     phases.forEach((p, idx) => {
       if (idx < activePhaseIndex) {
         p.status = 'completed';
-        p.stageLabel = 'COMPLETED';
-        p.verdict = 'הושלם';
+        p.stageLabel = 'הושלם ואושר ✓';
+        p.verdict = 'אושר (Approved)';
         p.gateScore = '✓ 100%';
         p.deliverables.forEach(d => d.status = 'done');
       } else if (idx === activePhaseIndex) {
         p.status = 'active';
-        p.stageLabel = 'ACTIVE SPRINT';
+        p.stageLabel = 'ספרינט פעיל כעת ⚡';
         p.verdict = 'בביצוע פעיל';
         p.gateScore = 'בתהליך';
         p.deliverables.forEach(d => {
@@ -114,14 +125,14 @@ export class PlanAdapter {
         });
       } else {
         p.status = 'planned';
-        p.stageLabel = 'PLANNED';
-        p.verdict = 'מתוכנן';
+        p.stageLabel = 'מתוכנן להמשך ○';
+        p.verdict = 'טרם החל';
         p.gateScore = '--';
       }
 
       p.nextActionHeader = p.status === 'active' ? 'משימות פעילות לביצוע:' : `סטטוס פאזה ${idx}:`;
       p.nextActionSub = p.status === 'active' ? 'משימות פתוחות ברשימה:' : 'מצב:';
-      p.nextActionBody = p.status === 'active' ? 'המשך סימון משימות שבוצעו ב-Plan.md.' : (p.status === 'completed' ? 'השלב הושלם.' : 'טרם החל.');
+      p.nextActionBody = p.status === 'active' ? 'המשך סימון משימות שבוצעו ב-Plan.md.' : (p.status === 'completed' ? 'השלב הושלם בהצלחה.' : 'טרם החל.');
     });
 
     const macroProgressPercent = Math.min(100, Math.round((activePhaseIndex / Math.max(1, phases.length)) * 100));

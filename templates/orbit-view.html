@@ -3,47 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit Dashboard — Project Companion</title>
+  <title>Orbit Dashboard — מלווה פרויקטים חכם</title>
   <!-- Antigravity / Tailwind CDN -->
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <script>
-    // Fallback if local tailwind isn't present
     if (!window.tailwind) {
       document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
     }
   </script>
   <style>
+    /* CSS Theme Variables (Dynamic Light / Dark) */
     :root {
-      --color-primary: #6366f1;
-      --color-primary-hover: #4f46e5;
-      --color-primary-soft: rgba(99, 102, 241, 0.12);
+      /* Defaults (Light Theme - High Contrast) */
+      --color-primary: #2F6F5E;
+      --color-primary-hover: #255A4C;
+      --color-primary-soft: rgba(47, 111, 94, 0.12);
       --color-secondary: #0ea5e9;
       --color-accent: #f43f5e;
+      --color-success: #15803d;
+      --color-warning: #b45309;
+      --color-bg: #F7F5F0;
+      --color-surface: #FFFFFF;
+      --color-surface-card: #FFFFFF;
+      --color-border: #DDE3E0;
+      --color-border-active: #2F6F5E;
+      --color-text: #1F2A28;
+      --color-text-muted: #52605D;
+
+      --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Heebo', 'Assistant', sans-serif;
+    }
+
+    /* Dark Mode Theme */
+    html.dark {
+      --color-primary: #6366f1;
+      --color-primary-hover: #4f46e5;
+      --color-primary-soft: rgba(99, 102, 241, 0.18);
+      --color-secondary: #38bdf8;
+      --color-accent: #fb7185;
       --color-success: #10b981;
       --color-warning: #f59e0b;
-      --color-bg: #0f172a;
+      --color-bg: #0b0f19;
       --color-surface: #1e293b;
-      --color-surface-card: rgba(30, 41, 59, 0.7);
-      --color-border: rgba(148, 163, 184, 0.15);
-      --color-border-active: rgba(99, 102, 241, 0.4);
+      --color-surface-card: #182234;
+      --color-border: rgba(148, 163, 184, 0.22);
+      --color-border-active: #6366f1;
       --color-text: #f8fafc;
       --color-text-muted: #94a3b8;
-
-      --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Assistant', 'Heebo', sans-serif;
     }
 
     * {
       box-sizing: border-box;
       scrollbar-width: thin;
-      scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+      scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
     }
 
     *::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+      width: 5px;
+      height: 5px;
     }
     *::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.3);
+      background: rgba(100, 116, 139, 0.4);
       border-radius: 9999px;
     }
 
@@ -58,14 +77,18 @@
       width: 100vw;
       margin: 0;
       padding: 0;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
-    .glass-card {
+    .orbit-card {
       background: var(--color-surface-card);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--color-border);
       border-radius: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    html.dark .orbit-card {
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     }
 
     .phase-step {
@@ -74,30 +97,31 @@
       padding: 0.45rem 0.65rem;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      background: rgba(30, 41, 59, 0.4);
+      background: var(--color-surface);
     }
     .phase-step:hover {
       border-color: var(--color-primary);
-      background: rgba(99, 102, 241, 0.08);
       transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     }
     .phase-step.active {
       border-color: var(--color-primary);
-      background: rgba(99, 102, 241, 0.15);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+      background: var(--color-primary-soft);
+      box-shadow: 0 0 12px var(--color-primary-soft);
+      border-width: 1.5px;
     }
     .phase-step.done {
-      border-color: rgba(16, 185, 129, 0.3);
-      background: rgba(16, 185, 129, 0.06);
+      border-color: rgba(22, 163, 74, 0.35);
+      background: rgba(22, 163, 74, 0.06);
     }
     .phase-step.selected-history {
-      outline: 2px solid var(--color-secondary);
+      outline: 2px solid var(--color-primary);
       outline-offset: 1px;
     }
 
     @keyframes pulse-subtle {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.05); }
+      50% { opacity: 0.7; transform: scale(1.05); }
     }
     .animate-pulse-subtle {
       animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -108,63 +132,73 @@
       to { transform: rotate(360deg); }
     }
     .animate-spin-slow {
-      animation: spin-slow 12s linear infinite;
+      animation: spin-slow 16s linear infinite;
     }
   </style>
 </head>
-<body class="flex flex-col h-screen max-h-screen p-2.5 sm:p-3 gap-2.5 select-none text-slate-100">
+<body class="flex flex-col h-screen max-h-screen p-2.5 sm:p-3 gap-2.5 select-none">
 
   <!-- ==================== 1. HEADER (Compact, Zero-Scroll) ==================== -->
-  <header class="glass-card px-4 py-2.5 flex items-center justify-between shrink-0 shadow-lg">
+  <header class="orbit-card px-4 py-2.5 flex items-center justify-between shrink-0">
     <div class="flex items-center gap-3">
       <!-- Orbit Brand Orb -->
-      <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 flex items-center justify-center text-white text-lg shadow-md shrink-0">
+      <div class="relative w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
         <span class="animate-spin-slow">🛰️</span>
-        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-900"></span>
+        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white" style="background-color: var(--color-success);"></span>
       </div>
 
       <div>
         <div class="flex items-center gap-2">
-          <h1 id="projName" class="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1.5">
-            Orbit: <span id="headerProjectTitle" class="text-indigo-400">Loading...</span>
+          <h1 id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
+            Orbit: <span id="headerProjectTitle" style="color: var(--color-primary);">טוען פרויקט...</span>
           </h1>
-          <span id="headerAdapterBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
-            Shraga Harness
+          <span id="headerAdapterBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
+            מתאם שרגא (Shraga)
           </span>
-          <span id="headerPhasePill" class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            Phase 1
+          <span id="headerPhasePill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
+            שלב 0 פעיל
           </span>
         </div>
-        <div id="headerSubtitle" class="text-xs text-slate-400 flex items-center gap-1.5">
+        <div id="headerSubtitle" class="text-xs flex items-center gap-1.5 mt-0.5 truncate max-w-xl" style="color: var(--color-text-muted);">
           סנכרון רציף פסיבי (Zero-Footprint) · מלווה פיתוח בזמן אמת
         </div>
       </div>
     </div>
 
-    <!-- Actions & Telemetry Ticker -->
+    <!-- Actions, Live Ticker & Theme Switcher -->
     <div class="flex items-center gap-3">
       <!-- Live Ticking Engine -->
       <div class="text-left sm:text-right hidden sm:block">
-        <div class="text-[11px] text-slate-400 flex items-center justify-end gap-1">
+        <div class="text-[11px] flex items-center justify-end gap-1" style="color: var(--color-text-muted);">
           <span>עודכן ב-</span>
-          <span id="tickerClock" class="font-mono text-slate-300">--:--:--</span>
+          <span id="tickerClock" class="font-mono font-bold" style="color: var(--color-text);">--:--:--</span>
         </div>
-        <div class="text-xs font-bold text-indigo-300 flex items-center justify-end gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <div class="text-xs font-bold flex items-center justify-end gap-1.5" style="color: var(--color-primary);">
+          <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: var(--color-success);"></span>
           <span id="tickerRelative">ממש עכשיו</span>
         </div>
       </div>
 
-      <!-- Quick Action Buttons -->
+      <!-- Quick Action Controls -->
       <div class="flex items-center gap-1.5">
-        <button id="btnManualRefresh" onclick="manualRefresh()" title="רענן נתונים עכשיו" class="p-2 rounded-lg bg-slate-800/80 hover:bg-indigo-600/30 border border-slate-700 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1">
+        <!-- Theme Switcher (Light / Dark) -->
+        <button id="btnThemeToggle" onclick="toggleTheme()" title="החלף מצב בהיר / כהה" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center justify-center" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          <span id="themeToggleIcon">🌙</span>
+        </button>
+
+        <!-- Manual Refresh -->
+        <button id="btnManualRefresh" onclick="manualRefresh()" title="רענן נתונים עכשיו" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center gap-1" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
           <span id="refreshIcon">↻</span>
           <span class="hidden md:inline">רענן</span>
         </button>
-        <button id="btnOpenBrowser" onclick="openExternal()" title="פתח בחלון נפרד למסך שני" class="p-2 rounded-lg bg-slate-800/80 hover:bg-sky-600/30 border border-slate-700 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1">
+
+        <!-- Open External in Standalone Browser -->
+        <button id="btnOpenBrowser" onclick="openExternal()" title="פתח בחלון דפדפן נפרד (מסך שני)" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center gap-1" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
           <span>↗</span>
         </button>
-        <button id="btnAbout" onclick="openAboutModal()" title="אודות Orbit Dashboard" class="w-8 h-8 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 hover:text-white font-bold transition-all text-sm flex items-center justify-center">
+
+        <!-- About Modal Button -->
+        <button id="btnAbout" onclick="openAboutModal()" title="אודות Orbit Dashboard" class="w-8 h-8 rounded-lg border font-black transition-all text-sm flex items-center justify-center" style="background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary);">
           ?
         </button>
       </div>
@@ -173,22 +207,22 @@
 
   <!-- ==================== 2. ROADMAP STEPPER (Interactive Time Machine) ==================== -->
   <nav id="roadmapContainer" class="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2 shrink-0">
-    <!-- Generated dynamically by renderRoadmap() -->
+    <!-- Populated dynamically by renderRoadmap() -->
   </nav>
 
   <!-- Notice Banner if Viewing History -->
-  <div id="historyNoticeBanner" class="hidden px-3 py-1.5 rounded-lg bg-sky-950/60 border border-sky-500/40 text-sky-200 text-xs flex items-center justify-between shrink-0">
+  <div id="historyNoticeBanner" class="hidden px-3 py-1.5 rounded-lg border text-xs flex items-center justify-between shrink-0" style="background-color: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-text);">
     <div class="flex items-center gap-2">
       <span>🕰️</span>
-      <span>אתה צופה בתמונת מצב היסטורית: <strong>פאזה <span id="historyPhaseNum">1</span></strong></span>
+      <span>אתה צופה בתמונת מצב היסטורית: <strong id="historyPhaseTitle">פאזה 0</strong></span>
     </div>
-    <button onclick="resetToActivePhase()" class="text-xs font-bold underline hover:text-white cursor-pointer">
-      חזור לפאזה הפעילה כעת (פאזה <span id="activePhaseResetNum">2</span>) ➔
+    <button onclick="resetToActivePhase()" class="text-xs font-bold underline cursor-pointer" style="color: var(--color-primary);">
+      חזור לפאזה הפעילה כעת (שלב <span id="activePhaseResetNum">0</span>) ➔
     </button>
   </div>
 
   <!-- Notice Banner if Generic Git Adapter (Transparency Principle) -->
-  <div id="transparencyBanner" class="hidden px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2 shrink-0">
+  <div id="transparencyBanner" class="hidden px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 shrink-0" style="background-color: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #b45309;">
     <span>ℹ️</span>
     <span><strong>שקיפות מובנית:</strong> הפרויקט מתנהל ללא תוכנית-על מובנית (Zoom-out roadmap); הדשבורד משקף פעילות קוד, קומיטים ובדיקות מקומיות.</span>
   </div>
@@ -197,70 +231,70 @@
   <main class="grid grid-cols-1 md:grid-cols-3 gap-2.5 flex-1 min-h-0">
 
     <!-- ========== COLUMN 1: CONTEXT & MACRO ========== -->
-    <section class="glass-card p-4 flex flex-col justify-between overflow-hidden shadow-md">
+    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
       <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
         <div class="flex items-center justify-between">
-          <span id="col1StageBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            BUILD PHASE
+          <span id="col1StageBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
+            שלב 4: סשן בנייה פעיל (Build)
           </span>
-          <span id="col1StatusIndicator" class="text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">
+          <span id="col1StatusIndicator" class="text-[11px] font-bold px-2 py-0.5 rounded" style="background-color: rgba(245, 158, 11, 0.15); color: #b45309;">
             ⚡ פעיל כעת
           </span>
         </div>
 
-        <h2 id="col1PhaseTitle" class="text-base sm:text-lg font-black text-white leading-snug">
+        <h2 id="col1PhaseTitle" class="text-base sm:text-lg font-black leading-snug" style="color: var(--color-text);">
           טוען נתונים...
         </h2>
 
         <!-- Phase Essence Card -->
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <div class="text-[11px] font-bold text-indigo-400">מהות הפאזה והמשמעות:</div>
-          <p id="col1PhaseDesc" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <div class="p-3 rounded-xl border space-y-1" style="background-color: var(--color-bg); border-color: var(--color-border);">
+          <div class="text-[11px] font-bold" style="color: var(--color-primary);">מהות הפאזה והמשמעות:</div>
+          <p id="col1PhaseDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--color-text);">
             טוען את תיאור הפאזה והמטרות המרכזיות שלה...
           </p>
         </div>
 
         <!-- Macro Progress Summary -->
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <div class="p-3 rounded-xl border space-y-2" style="background-color: var(--color-bg); border-color: var(--color-border);">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-semibold">התקדמות כוללת בפרויקט:</span>
-            <span id="col1MacroProgressText" class="font-bold text-indigo-400">0%</span>
+            <span class="font-semibold" style="color: var(--color-text-muted);">התקדמות כוללת בפרויקט:</span>
+            <span id="col1MacroProgressText" class="font-bold" style="color: var(--color-primary);">0%</span>
           </div>
-          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div id="col1MacroProgressBar" class="bg-gradient-to-r from-indigo-500 to-sky-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          <div class="w-full h-2.5 rounded-full overflow-hidden" style="background-color: var(--color-border);">
+            <div id="col1MacroProgressBar" class="h-full rounded-full transition-all duration-500" style="width: 0%; background-color: var(--color-primary);"></div>
           </div>
         </div>
       </div>
 
       <!-- Metrics & Quality Indicators -->
-      <div class="pt-2 border-t border-slate-800/80 shrink-0 space-y-1.5 mt-2">
-        <div class="text-[11px] font-bold text-slate-400">מדדי איכות ואימות (Telemetry):</div>
+      <div class="pt-2 border-t shrink-0 space-y-1.5 mt-2" style="border-color: var(--color-border);">
+        <div class="text-[11px] font-bold" style="color: var(--color-text-muted);">מדדי איכות ואימות (Telemetry):</div>
         <div class="grid grid-cols-2 gap-2">
-          <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-2 text-center">
-            <div id="metricTestsVal" class="text-lg sm:text-xl font-black text-emerald-400">0</div>
-            <div id="metricTestsLbl" class="text-[10px] text-slate-400 font-semibold">בדיקות יחידה שעברו</div>
+          <div class="border rounded-lg p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div id="metricTestsVal" class="text-lg sm:text-xl font-black" style="color: var(--color-success);">0</div>
+            <div id="metricTestsLbl" class="text-[10px] font-semibold" style="color: var(--color-text-muted);">בדיקות יחידה שעברו</div>
           </div>
-          <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-2 text-center">
-            <div id="metricGateVal" class="text-lg sm:text-xl font-black text-indigo-400">--</div>
-            <div id="metricGateLbl" class="text-[10px] text-slate-400 font-semibold">שער איכות / E2E</div>
+          <div class="border rounded-lg p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div id="metricGateVal" class="text-lg sm:text-xl font-black" style="color: var(--color-primary);">--</div>
+            <div id="metricGateLbl" class="text-[10px] font-semibold" style="color: var(--color-text-muted);">שער איכות ובקרת שרגא</div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ========== COLUMN 2: SCOPE & CODE ACTIVITY (Honest State) ========== -->
-    <section class="glass-card p-4 flex flex-col justify-between overflow-hidden shadow-md">
+    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
       <div class="flex flex-col gap-2.5 overflow-hidden flex-1">
         <div class="flex items-center justify-between shrink-0">
-          <span class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">
-            מנוע אמת (Honest State Machine)
+          <span class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--color-primary);">
+            מנוע אמת (Honest State)
           </span>
-          <span id="col2TotalCountBadge" class="text-[11px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+          <span id="col2TotalCountBadge" class="text-[11px] font-bold px-2 py-0.5 rounded" style="background-color: var(--color-bg); color: var(--color-text-muted);">
             0 משימות
           </span>
         </div>
 
-        <h3 id="col2ScopeTitle" class="text-sm sm:text-base font-extrabold text-white shrink-0">
+        <h3 id="col2ScopeTitle" class="text-sm sm:text-base font-extrabold shrink-0" style="color: var(--color-text);">
           תכולת עבודה ופעילות בקוד:
         </h3>
 
@@ -271,13 +305,13 @@
       </div>
 
       <!-- Architecture Review / Quality Gate Verdict -->
-      <div class="pt-2 border-t border-slate-800/80 shrink-0 mt-2">
-        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between text-xs">
+      <div class="pt-2 border-t shrink-0 mt-2" style="border-color: var(--color-border);">
+        <div class="p-2.5 rounded-xl border flex items-center justify-between text-xs" style="background-color: var(--color-bg); border-color: var(--color-border);">
           <div class="flex flex-col">
-            <span class="text-[10px] text-slate-400 font-bold">ביקורת ארכיטקטורה / איכות:</span>
-            <span id="verdictLabel" class="text-xs font-bold text-slate-200">ממתין לסיום הבנייה</span>
+            <span class="text-[10px] font-bold" style="color: var(--color-text-muted);">ביקורת ארכיטקטורה / איכות:</span>
+            <span id="verdictLabel" class="text-xs font-bold" style="color: var(--color-text);">ממתין לסיום הבנייה</span>
           </div>
-          <span id="verdictBadge" class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <span id="verdictBadge" class="px-2.5 py-1 rounded-full text-xs font-extrabold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
             Pending
           </span>
         </div>
@@ -285,48 +319,48 @@
     </section>
 
     <!-- ========== COLUMN 3: NEXT STEP & GUIDANCE ========== -->
-    <section class="glass-card p-4 flex flex-col justify-between overflow-hidden shadow-md bg-gradient-to-b from-slate-800/40 to-indigo-950/20">
+    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
       <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1" style="color: var(--color-accent);">
             <span>🎯</span> הצעד המעשי הבא
           </span>
-          <span id="col3StatusPill" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+          <span id="col3StatusPill" class="text-[11px] font-bold border px-2 py-0.5 rounded" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
             הנחיה ברורה
           </span>
         </div>
 
-        <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
+        <h3 class="text-sm sm:text-base font-black flex items-center gap-1.5" style="color: var(--color-text);">
           <span>🚀</span> <span id="col3NextActionTitle">מה עושים עכשיו?</span>
         </h3>
 
         <!-- Main Direct Instruction Box -->
-        <div id="col3InstructionBox" class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 space-y-2">
-          <div id="col3NextHeader" class="text-xs font-bold text-indigo-400">
+        <div id="col3InstructionBox" class="p-3.5 rounded-xl border space-y-2" style="background-color: var(--color-bg); border-color: var(--color-border);">
+          <div id="col3NextHeader" class="text-xs font-bold" style="color: var(--color-primary);">
             השלב המיידי לביצוע:
           </div>
-          <div id="col3NextBody" class="text-xs text-slate-300 leading-relaxed space-y-1">
+          <div id="col3NextBody" class="text-xs leading-relaxed space-y-1" style="color: var(--color-text);">
             טוען הנחיות פעולה...
           </div>
         </div>
 
         <!-- Copy-Paste Suggested Prompt Box (if available) -->
-        <div id="col3PromptContainer" class="hidden p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
+        <div id="col3PromptContainer" class="hidden p-3 rounded-xl border space-y-2" style="background-color: var(--color-primary-soft); border-color: var(--color-primary);">
           <div class="flex items-center justify-between text-[11px]">
-            <span class="font-bold text-indigo-300">פרומפט מומלץ לסשן הבא:</span>
-            <button onclick="copyPromptText()" class="text-[10px] bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-200 px-2 py-0.5 rounded border border-indigo-500/40 transition">
+            <span class="font-bold" style="color: var(--color-primary);">פרומפט מומלץ לסשן הבא:</span>
+            <button onclick="copyPromptText()" class="text-[10px] px-2 py-0.5 rounded border transition" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);">
               <span id="copyBtnText">העתק 📋</span>
             </button>
           </div>
-          <pre id="col3PromptCode" class="text-[11px] font-mono text-indigo-100 bg-slate-950/80 p-2 rounded-lg overflow-x-auto whitespace-pre-wrap select-text"></pre>
+          <pre id="col3PromptCode" class="text-[11px] font-mono p-2.5 rounded-lg overflow-x-auto whitespace-pre-wrap select-text border" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);"></pre>
         </div>
       </div>
 
       <!-- Action Footer -->
-      <div class="pt-2 border-t border-slate-800/80 shrink-0 mt-2">
-        <div class="flex items-center justify-between text-xs text-slate-400">
-          <span>מצב שקט: <strong class="text-emerald-400">Daemon סורק</strong></span>
-          <span id="col3CycleStage" class="font-mono text-[11px] text-indigo-300">STAGE 4: BUILD</span>
+      <div class="pt-2 border-t shrink-0 mt-2" style="border-color: var(--color-border);">
+        <div class="flex items-center justify-between text-xs" style="color: var(--color-text-muted);">
+          <span>מצב שקט: <strong style="color: var(--color-success);">Daemon סורק</strong></span>
+          <span id="col3CycleStage" class="font-mono text-[11px] font-bold" style="color: var(--color-primary);">שלב 4: סשן בנייה פעיל</span>
         </div>
       </div>
     </section>
@@ -334,27 +368,27 @@
   </main>
 
   <!-- ==================== 4. ABOUT MODAL DRAWER ('?' Modal) ==================== -->
-  <div id="aboutModal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-card max-w-xl w-full p-5 sm:p-6 space-y-4 border border-indigo-500/40 shadow-2xl relative select-text" onclick="event.stopPropagation()">
+  <div id="aboutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+    <div class="orbit-card max-w-xl w-full p-5 sm:p-6 space-y-4 shadow-2xl relative select-text" onclick="event.stopPropagation()">
       <!-- Close Button -->
-      <button onclick="closeAboutModal()" class="absolute top-4 left-4 w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">
+      <button onclick="closeAboutModal()" class="absolute top-4 left-4 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
         ✕
       </button>
 
       <!-- Modal Header -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 flex items-center justify-center text-white text-xl shadow-md shrink-0">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
           🛰️
         </div>
         <div>
-          <h2 class="text-lg font-black text-white">אודות Orbit Dashboard</h2>
-          <div class="text-xs text-indigo-300 font-semibold">Continuous Zero-Touch Project Companion · v1.0.0</div>
+          <h2 class="text-lg font-black" style="color: var(--color-text);">אודות Orbit Dashboard</h2>
+          <div class="text-xs font-semibold" style="color: var(--color-primary);">Continuous Zero-Touch Project Companion · v1.1.0</div>
         </div>
       </div>
 
       <!-- About Description (Hebrew) -->
-      <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-1.5">
-        <strong class="text-white block font-bold">מבט-על רציף ("מעוף הציפור") בזמן אמת:</strong>
+      <div class="p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed space-y-1.5" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+        <strong class="block font-bold">מבט-על רציף ("מעוף הציפור") בזמן אמת:</strong>
         <p>
           Orbit Dashboard הוא מלווה הפיתוח החכם שלך, המעניק מבט-על רציף על התקדמות הפרויקט בזמן אמת. המערכת פועלת ברקע באופן פסיבי ומאובטח לחלוטין (Read-Only) מבלי לשנות או לזהם אף קובץ בקוד שלך.
         </p>
@@ -364,30 +398,30 @@
       </div>
 
       <!-- English Summary -->
-      <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800/80 text-[11px] text-slate-400 leading-relaxed" dir="ltr">
+      <div class="p-3 rounded-xl border text-[11px] leading-relaxed" dir="ltr" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
         <strong>English Summary:</strong> Orbit Dashboard is an intelligent development companion providing a continuous bird's-eye view of your project's live progress. Operating in a completely passive, read-only mode, Orbit observes your workspace without modifying files in your codebase.
       </div>
 
       <!-- Metadata & Telemetry -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-        <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-          <span class="text-slate-400 block text-[10px]">מתאם פעיל:</span>
-          <strong id="modalAdapter" class="text-indigo-300">Shraga First-Class</strong>
+        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[10px]" style="color: var(--color-text-muted);">מתאם פעיל:</span>
+          <strong id="modalAdapter" style="color: var(--color-primary);">Shraga First-Class</strong>
         </div>
-        <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-          <span class="text-slate-400 block text-[10px]">תדירות סריקה:</span>
-          <strong id="modalFrequency" class="text-emerald-300">כל 2 דקות (Daemon)</strong>
+        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[10px]" style="color: var(--color-text-muted);">תדירות סריקה:</span>
+          <strong id="modalFrequency" style="color: var(--color-success);">כל 2 דקות (Daemon)</strong>
         </div>
-        <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-          <span class="text-slate-400 block text-[10px]">מצב אבטחה:</span>
-          <strong class="text-sky-300">Read-Only (Zero-Touch)</strong>
+        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[10px]" style="color: var(--color-text-muted);">מצב אבטחה:</span>
+          <strong style="color: var(--color-secondary);">Read-Only (Zero-Touch)</strong>
         </div>
       </div>
 
       <!-- Shortcuts & Tips -->
-      <div class="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t border-slate-800">
-        <span>מקש קיצור: <code>Esc</code> לסגירה · <code>R</code> לרענון</span>
-        <button onclick="closeAboutModal()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition">
+      <div class="text-[11px] flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
+        <span>מקשי קיצור: <code>Esc</code> לסגירה · <code>T</code> למצב כהה/בהיר · <code>R</code> לרענון</span>
+        <button onclick="closeAboutModal()" class="px-3 py-1 rounded-lg text-white font-bold text-xs transition" style="background: var(--color-primary);">
           הבנתי, תודה
         </button>
       </div>
@@ -400,30 +434,60 @@
     let orbitState = window.ORBIT_DATA || null;
     let selectedPhaseIndex = null;
     let lastUpdatedTimestamp = Date.now();
+    let isDarkMode = false;
 
     // 1. Initial Launch
     document.addEventListener('DOMContentLoaded', () => {
+      // Check stored theme preference
+      const storedTheme = localStorage.getItem('orbit_theme');
+      if (storedTheme === 'dark') {
+        enableDarkMode(true);
+      } else if (storedTheme === 'light') {
+        enableDarkMode(false);
+      }
+
       if (orbitState) {
         initDashboard(orbitState);
       } else {
-        // Attempt to soft-fetch local orbit-state.json
         fetchOrbitState();
       }
 
-      // Start ticking clock every 1 second
+      // Live Ticker every second
       setInterval(updateRelativeTicker, 1000);
 
-      // Soft-Sync Polling every 5 seconds (flicker-free live updates)
+      // Soft-Sync Polling every 5 seconds
       setInterval(fetchOrbitState, 5000);
 
       // Keyboard shortcuts
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAboutModal();
+        if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+          toggleTheme();
+        }
         if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
           manualRefresh();
         }
       });
     });
+
+    // Theme Toggle Controls
+    function toggleTheme() {
+      enableDarkMode(!isDarkMode);
+      localStorage.setItem('orbit_theme', isDarkMode ? 'dark' : 'light');
+    }
+
+    function enableDarkMode(dark) {
+      isDarkMode = dark;
+      const html = document.documentElement;
+      const icon = document.getElementById('themeToggleIcon');
+      if (isDarkMode) {
+        html.classList.add('dark');
+        if (icon) icon.textContent = '☀️';
+      } else {
+        html.classList.remove('dark');
+        if (icon) icon.textContent = '🌙';
+      }
+    }
 
     // 2. Fetch State from local json
     async function fetchOrbitState() {
@@ -446,27 +510,45 @@
     function initDashboard(state) {
       if (!state) return;
 
-      // Apply Dynamic Theme if available
+      // Apply Dynamic Theme
       if (state.theme) {
         const root = document.documentElement;
         if (state.theme.primary) root.style.setProperty('--color-primary', state.theme.primary);
         if (state.theme.primaryHover) root.style.setProperty('--color-primary-hover', state.theme.primaryHover);
-        if (state.theme.bg) root.style.setProperty('--color-bg', state.theme.bg);
-        if (state.theme.surface) root.style.setProperty('--color-surface', state.theme.surface);
-        if (state.theme.text) root.style.setProperty('--color-text', state.theme.text);
-        if (state.theme.fontFamily) root.style.setProperty('--font-family', state.theme.fontFamily);
+        
+        // If user hasn't explicitly overridden theme in localStorage, use project's preferred lightness
+        if (!localStorage.getItem('orbit_theme')) {
+          if (state.theme.isLight !== undefined) {
+            enableDarkMode(!state.theme.isLight);
+          }
+        }
+
+        if (state.theme.isLight) {
+          if (state.theme.bg) root.style.setProperty('--color-bg', state.theme.bg);
+          if (state.theme.surface) {
+            root.style.setProperty('--color-surface', state.theme.surface);
+            root.style.setProperty('--color-surface-card', state.theme.surface);
+          }
+          if (state.theme.text) root.style.setProperty('--color-text', state.theme.text);
+          if (state.theme.textMuted) root.style.setProperty('--color-text-muted', state.theme.textMuted);
+          if (state.theme.border) root.style.setProperty('--color-border', state.theme.border);
+        }
       }
 
       // Update Header
-      document.getElementById('headerProjectTitle').textContent = state.projectName || 'Project';
-      document.getElementById('headerAdapterBadge').textContent = state.adapterName || 'Harness';
+      document.getElementById('headerProjectTitle').textContent = state.projectName || 'פרויקט';
+      document.getElementById('headerAdapterBadge').textContent = state.adapterName || 'מתאם שרגא';
       
+      if (state.projectDescription) {
+        document.getElementById('headerSubtitle').textContent = state.projectDescription;
+      }
+
       const activeIdx = state.activePhaseIndex ?? 0;
       if (selectedPhaseIndex === null) {
         selectedPhaseIndex = activeIdx;
       }
 
-      document.getElementById('headerPhasePill').textContent = `Phase ${activeIdx}`;
+      document.getElementById('headerPhasePill').textContent = `שלב ${activeIdx} פעיל`;
       document.getElementById('activePhaseResetNum').textContent = activeIdx;
 
       // Toggle Transparency Banner if Generic Git
@@ -474,7 +556,7 @@
       document.getElementById('transparencyBanner').classList.toggle('hidden', !isGeneric);
 
       // Update Modal Info
-      document.getElementById('modalAdapter').textContent = state.adapterName || 'Auto-Detected';
+      document.getElementById('modalAdapter').textContent = state.adapterName || 'מתאם מזוהה';
       document.getElementById('modalFrequency').textContent = state.pollFrequency || 'כל 2 דקות';
 
       // Render Roadmap Stepper
@@ -497,7 +579,8 @@
       const historyBanner = document.getElementById('historyNoticeBanner');
       historyBanner.classList.toggle('hidden', !isHistory);
       if (isHistory) {
-        document.getElementById('historyPhaseNum').textContent = currentViewIdx;
+        const curPhase = phases[currentViewIdx] || {};
+        document.getElementById('historyPhaseTitle').textContent = curPhase.title || `שלב ${currentViewIdx}`;
       }
 
       phases.forEach((phase, idx) => {
@@ -510,12 +593,12 @@
 
         if (phase.status === 'completed' || phase.status === 'done') {
           statusClass = 'done';
-          statusPill = '<span class="text-emerald-400 font-bold">✓ אושר</span>';
+          statusPill = '<span class="font-bold" style="color: var(--color-success);">✓ אושר</span>';
         } else if (idx === activeIdx) {
           statusClass = 'active';
-          statusPill = '<span class="text-indigo-400 font-extrabold animate-pulse">⚡ פעיל</span>';
+          statusPill = '<span class="font-extrabold animate-pulse" style="color: var(--color-primary);">⚡ פעיל</span>';
         } else {
-          statusPill = '<span class="text-slate-500 font-semibold">○ מתוכנן</span>';
+          statusPill = '<span class="font-semibold" style="color: var(--color-text-muted);">○ מתוכנן</span>';
         }
 
         if (statusClass) step.classList.add(statusClass);
@@ -523,11 +606,11 @@
 
         step.innerHTML = `
           <div class="flex justify-between items-center text-[10px] mb-0.5">
-            <span class="font-bold text-slate-300">פאזה ${idx}</span>
+            <span class="font-bold" style="color: var(--color-text-muted);">שלב ${idx}</span>
             <span>${statusPill}</span>
           </div>
-          <div class="text-xs font-black text-white truncate">${phase.title || ('פאזה ' + idx)}</div>
-          <div class="text-[10px] text-slate-400 truncate mt-0.5">${phase.subtitle || ''}</div>
+          <div class="text-xs font-black truncate" style="color: var(--color-text);">${phase.title || ('שלב ' + idx)}</div>
+          <div class="text-[10px] truncate mt-0.5" style="color: var(--color-text-muted);">${phase.subtitle || ''}</div>
         `;
         container.appendChild(step);
       });
@@ -557,15 +640,10 @@
       const isActive = (idx === activeIdx);
 
       // Col 1: Context & Macro
-      document.getElementById('col1StageBadge').textContent = phase.stageLabel || (isActive ? 'BUILD PHASE' : (phase.status === 'done' ? 'COMPLETED' : 'PLANNED'));
+      document.getElementById('col1StageBadge').textContent = phase.stageLabel || (isActive ? 'שלב 4: סשן בנייה פעיל (Build)' : (phase.status === 'done' ? 'הושלם ואושר ✓' : 'מתוכנן להמשך ○'));
       document.getElementById('col1StatusIndicator').textContent = isActive ? '⚡ פעיל כעת' : (phase.status === 'done' ? '✓ הושלם' : '○ מתוכנן');
-      document.getElementById('col1StatusIndicator').className = isActive 
-        ? 'text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded' 
-        : (phase.status === 'done' 
-            ? 'text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded' 
-            : 'text-[11px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded');
 
-      document.getElementById('col1PhaseTitle').textContent = `פאזה ${idx}: ${phase.title || 'ללא כותרת'}`;
+      document.getElementById('col1PhaseTitle').textContent = `שלב ${idx}: ${phase.title || 'ללא כותרת'}`;
       document.getElementById('col1PhaseDesc').textContent = phase.description || 'אין תיאור זמין עבור פאזה זו.';
 
       // Macro Progress
@@ -577,29 +655,22 @@
       document.getElementById('metricTestsVal').textContent = phase.testsCount ?? state.totalTests ?? '0';
       document.getElementById('metricTestsLbl').textContent = phase.testsLabel || 'בדיקות יחידה שעברו';
       document.getElementById('metricGateVal').textContent = phase.gateScore || (phase.status === 'done' ? '✓ 100%' : '--');
-      document.getElementById('metricGateLbl').textContent = phase.gateLabel || 'שער איכות';
+      document.getElementById('metricGateLbl').textContent = phase.gateLabel || 'שער איכות ובקרת שרגא';
 
       // Col 2: Deliverables & Honest State
       renderDeliverables(phase.deliverables || []);
       
       // Verdict
-      const verdict = phase.verdict || (phase.status === 'done' ? 'Approved' : 'Pending Build');
+      const verdict = phase.verdict || (phase.status === 'done' ? 'אושר מלא (Approved)' : 'ממתין לסיום הבנייה');
       document.getElementById('verdictLabel').textContent = verdict;
       const badge = document.getElementById('verdictBadge');
       badge.textContent = verdict;
-      if (verdict.toLowerCase().includes('approved')) {
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
-      } else if (verdict.toLowerCase().includes('reject')) {
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-500/10 text-rose-400 border border-rose-500/30';
-      } else {
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
-      }
 
       // Col 3: Next Step & Guidance
-      document.getElementById('col3NextActionTitle').textContent = phase.nextActionHeader || 'מה נדרש כעת?';
+      document.getElementById('col3NextActionTitle').textContent = phase.nextActionHeader || 'מה עושים עכשיו?';
       document.getElementById('col3NextHeader').textContent = phase.nextActionSub || (isActive ? 'השלב המיידי לביצוע מול הסוכן:' : 'סטטוס פאזה זו:');
       document.getElementById('col3NextBody').innerHTML = phase.nextActionBody || (isActive ? 'המשך בביצוע המשימות הפעילות בסבב הנוכחי.' : 'פאזה זו הושלמה וממתינה לשלבים הבאים.');
-      document.getElementById('col3CycleStage').textContent = phase.cycleStage || (isActive ? 'STAGE: ACTIVE BUILD' : 'STAGE: ARCHIVED');
+      document.getElementById('col3CycleStage').textContent = phase.stageLabel || (isActive ? 'סשן בנייה פעיל' : 'בארכיון');
 
       // Suggested Prompt (if provided)
       const promptBox = document.getElementById('col3PromptContainer');
@@ -618,7 +689,7 @@
       document.getElementById('col2TotalCountBadge').textContent = `${items.length} משימות`;
 
       if (items.length === 0) {
-        container.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">אין משימות מוגדרות לפאזה זו.</div>';
+        container.innerHTML = '<div class="text-xs p-3 text-center" style="color: var(--color-text-muted);">אין משימות מוגדרות לפאזה זו.</div>';
         return;
       }
 
@@ -627,25 +698,32 @@
         div.className = 'p-2.5 rounded-xl border flex items-start gap-2.5 text-xs transition-all';
 
         let icon = '○';
-        let itemClass = 'bg-slate-900/40 border-slate-800 text-slate-400';
-        let titleColor = 'text-slate-300';
+        let itemBg = 'var(--color-bg)';
+        let itemBorder = 'var(--color-border)';
+        let itemColor = 'var(--color-text-muted)';
+        let titleColor = 'var(--color-text)';
 
         if (item.status === 'done' || item.status === 'completed') {
           icon = '✓';
-          itemClass = 'bg-emerald-950/20 border-emerald-500/20 text-emerald-300';
-          titleColor = 'text-emerald-300';
+          itemBg = 'rgba(22, 163, 74, 0.08)';
+          itemBorder = 'rgba(22, 163, 74, 0.3)';
+          itemColor = 'var(--color-success)';
+          titleColor = 'var(--color-success)';
         } else if (item.status === 'active' || item.status === 'in_progress') {
           icon = '⚡';
-          itemClass = 'bg-indigo-950/40 border-indigo-500/40 text-indigo-200';
-          titleColor = 'text-indigo-200 font-bold';
+          itemBg = 'var(--color-primary-soft)';
+          itemBorder = 'var(--color-primary)';
+          itemColor = 'var(--color-primary)';
+          titleColor = 'var(--color-primary)';
         }
 
-        div.className += ` ${itemClass}`;
+        div.style.backgroundColor = itemBg;
+        div.style.borderColor = itemBorder;
         div.innerHTML = `
-          <span class="font-extrabold text-sm shrink-0 mt-0.5 ${item.status === 'active' ? 'animate-pulse text-indigo-400' : ''}">${icon}</span>
+          <span class="font-black text-sm shrink-0 mt-0.5 ${item.status === 'active' ? 'animate-pulse' : ''}" style="color: ${itemColor};">${icon}</span>
           <div class="flex-1 min-w-0">
-            <strong class="${titleColor} block truncate">${item.title || ''}</strong>
-            <div class="text-[11px] text-slate-400 leading-snug mt-0.5">${item.desc || ''}</div>
+            <strong class="block truncate" style="color: ${titleColor};">${item.title || ''}</strong>
+            <div class="text-[11px] leading-snug mt-0.5" style="color: var(--color-text-muted);">${item.desc || ''}</div>
           </div>
         `;
         container.appendChild(div);
@@ -678,7 +756,7 @@
       }, 600);
     }
 
-    // 10. Open in Browser
+    // 10. Open in Standalone Browser
     function openExternal() {
       window.open(window.location.href, '_blank');
     }
