@@ -1,0 +1,25 @@
+{
+  "name": "orbit-dashboard",
+  "displayName": "Orbit Dashboard — Project Companion",
+  "version": "0.1.0",
+  "description": "דשבורד מעוף הציפור למעקב רציף, פסיבי (Zero-Footprint) ומאובטח אחר התקדמות הפרויקט בזמן אמת. תומך בפלואו שרגא, תוכניות פאזות עצמאיות, פעילות Git שוטפת, תקציב 100dvh ללא גלילה ואירוח כפול (Chat + Browser).",
+  "suggestedPrompts": [
+    "/orbit",
+    "הפעל את Orbit Dashboard",
+    "דשבורד",
+    "/orbit refresh"
+  ],
+  "author": {
+    "name": "dymvie-alt",
+    "email": "dymvie@gmail.com"
+  },
+  "keywords": [
+    "orbit",
+    "dashboard",
+    "shraga",
+    "zero-footprint",
+    "companion",
+    "monitor",
+    "100dvh"
+  ]
+}
