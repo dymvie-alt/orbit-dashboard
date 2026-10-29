@@ -1,7 +1,9 @@
 /**
- * Orbit Dashboard - Shraga Harness Adapter (First-Class)
+ * Orbit Dashboard - Shraga Harness Adapter (First-Class v2.0)
  * Strictly Read-Only parser for Shraga multi-agent architecture.
- * Integrated with HebrewNormalizer for natural Hebrew (RTL) presentation with original LTR terms.
+ * Integrated with HebrewNormalizer v2.0 for RTL-first Hebrew presentation,
+ * separating Core Features from Acceptance Criteria (AC) and Risk Gates,
+ * and performing live file-existence Honest State verification.
  */
 
 import fs from 'fs';
@@ -31,7 +33,7 @@ export class ShragaAdapter {
     // 2. Extract Project Title & Hebrew About / Tagline
     let projectName = path.basename(projectPath);
     let projectDescription = 'פרויקט מנוהל במתודולוגיית שרגא (LetsAI AI Architect)';
-    
+
     const prdCandidates = [
       path.join(shragaDir, 'project-arch-plan.md'),
       path.join(shragaDir, 'PRD.md'),
@@ -41,7 +43,7 @@ export class ShragaAdapter {
     for (const prdPath of prdCandidates) {
       if (fs.existsSync(prdPath)) {
         const prdContent = fs.readFileSync(prdPath, 'utf-8');
-        
+
         // Extract Title
         const h1Match = prdContent.match(/^#\s+(.+)$/m);
         if (h1Match) {
@@ -66,16 +68,19 @@ export class ShragaAdapter {
       }
     }
 
-    // 3. Parse Plan.md for Phases & Deliverables
+    // 3. Parse Plan.md for Phases, Core Features, AC & Risk Gates
     const planFile = path.join(shragaDir, 'Plan.md');
     const phases = [];
     let macroProgressPercent = 0;
     let totalTests = 0;
 
     if (fs.existsSync(planFile)) {
-      const planContent = fs.readFileSync(planFile, 'utf-8');
-      
-      // Match phase headers: e.g. "### פאזה 0: תשתית ושלד" or "## Phase 0 - Foundation" or "### Phase 1: ..."
+      let planContent = fs.readFileSync(planFile, 'utf-8');
+
+      // Strip "## Change Log" or "## Changelog" section at the bottom so it never leaks into the last phase!
+      planContent = planContent.replace(/\n##+\s*Change\s*Log[\s\S]*$/i, '');
+
+      // Match phase headers ONLY at line start: e.g. "## Phase 0 - Foundation" or "### פאזה 0: תשתית"
       const phaseRegex = /(?:^|\n)#{2,4}\s*(?:(?:פאזה|Phase)\s*(\d+)[:\s\-]+|(\d+)[\.\)]\s+)([^\n]+)([\s\S]*?)(?=(?:\n#{2,4}\s*(?:(?:פאזה|Phase)\s*\d+|\d+[\.\)]))|$)/gi;
       let phaseMatch;
 
@@ -87,37 +92,6 @@ export class ShragaAdapter {
         // Normalize Title into Natural Hebrew with English Terms Preserved
         const pTitle = HebrewNormalizer.normalizePhaseTitle(rawTitle, pNum);
 
-        // Extract Deliverables / Checklists
-        const deliverables = [];
-        const taskRegex = /[-*]\s*(?:\[([ xX])\])?\s*([^\n]+)/g;
-        let taskMatch;
-
-        while ((taskMatch = taskRegex.exec(pBody)) !== null) {
-          const isChecked = taskMatch[1] && taskMatch[1].toLowerCase() === 'x';
-          const taskText = taskMatch[2].trim();
-
-          let tTitle = taskText;
-          let tDesc = '';
-          if (taskText.includes(':')) {
-            const parts = taskText.split(':');
-            tTitle = parts[0].replace(/\*\*/g, '').trim();
-            tDesc = parts.slice(1).join(':').replace(/\*\*/g, '').trim();
-          }
-
-          let itemStatus = 'planned';
-          if (pNum < activePhaseIndex || isChecked) {
-            itemStatus = 'done';
-          } else if (pNum === activePhaseIndex) {
-            itemStatus = isChecked ? 'done' : 'active';
-          }
-
-          deliverables.push({
-            status: itemStatus,
-            title: tTitle,
-            desc: tDesc
-          });
-        }
-
         // Determine Phase Status
         let pStatus = 'planned';
         if (pNum < activePhaseIndex) {
@@ -126,49 +100,199 @@ export class ShragaAdapter {
           pStatus = 'active';
         }
 
-        // Raw description extraction
-        let rawDesc = pBody.split('\n').find(line => {
-          const l = line.trim();
-          return l.length > 10 && !l.startsWith('-') && !l.startsWith('*') && !l.startsWith('#') && !l.startsWith('|');
-        }) || `פאזת פיתוח ${pNum} במסגרת תוכנית האב של שרגא.`;
+        // Parse pBody line-by-line by section (Objectives, Features, Acceptance criteria, Risk gate)
+        const lines = pBody.split('\n');
+        let currentSection = 'general';
+        let rawObjectives = '';
+        const rawFeatures = [];
+        let acCount = 0;
+        let riskGateCount = 0;
 
-        const cleanDesc = HebrewNormalizer.cleanDescription(rawDesc);
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+          // Ignore markdown table rows
+          if (line.startsWith('|') || line.startsWith('--|')) continue;
+
+          // Check section headers
+          if (/^(?:Objectives|יעדי הפאזה|מטרה)\s*:/i.test(line)) {
+            currentSection = 'objectives';
+            const afterColon = line.replace(/^(?:Objectives|יעדי הפאזה|מטרה)\s*:\s*/i, '').trim();
+            if (afterColon) rawObjectives = afterColon;
+            continue;
+          }
+
+          if (/^(?:Features|תכולה|פיצ׳רים|משימות)\s*:/i.test(line)) {
+            currentSection = 'features';
+            const afterColon = line.replace(/^(?:Features|תכולה|פיצ׳רים|משימות)\s*:\s*/i, '').trim();
+            if (afterColon) {
+              // Inline features separated by semicolons (e.g. Kal Kesef style: "Features: A; B; C.")
+              const inlineItems = ShragaAdapter.splitInlineFeatures(afterColon);
+              rawFeatures.push(...inlineItems);
+            }
+            continue;
+          }
+
+          if (/^(?:Acceptance\s*criteria|תנאי\s*קבלה)\s*:/i.test(line)) {
+            currentSection = 'ac';
+            continue;
+          }
+
+          if (/^(?:Risk\s*gate|שער\s*סיכונים|סיכונים)\s*:/i.test(line)) {
+            currentSection = 'risk';
+            const afterColon = line.replace(/^(?:Risk\s*gate|שער\s*סיכונים|סיכונים)\s*:\s*/i, '').trim();
+            if (afterColon) {
+              const inlineRisks = afterColon.split(';').map(s => s.trim()).filter(Boolean);
+              riskGateCount += inlineRisks.length;
+            }
+            continue;
+          }
+
+          if (/^(?:Inputs|Outputs|Validation|Tests|Detailed\s+plan|Carried|Search\s+semantics)\s*:/i.test(line)) {
+            currentSection = 'meta';
+            continue;
+          }
+
+          // Process bullet lines (ONLY at the start of a line!)
+          const bulletMatch = line.match(/^[-*]\s*(?:\[([ xX])\])?\s*(.+)$/);
+          if (bulletMatch) {
+            const isChecked = bulletMatch[1] && bulletMatch[1].toLowerCase() === 'x';
+            const bulletText = bulletMatch[2].trim();
+
+            if (currentSection === 'ac' || /^AC-\d+/i.test(bulletText)) {
+              acCount++;
+            } else if (currentSection === 'risk' || /^R-\d+/i.test(bulletText)) {
+              riskGateCount++;
+            } else if (currentSection === 'features' || currentSection === 'general') {
+              rawFeatures.push({ text: bulletText, isChecked });
+            }
+          } else if (currentSection === 'objectives' && !rawObjectives) {
+            rawObjectives = line;
+          }
+        }
+
+        // Convert rawFeatures into concise, RTL-first Hebrew Deliverables
+        const deliverables = rawFeatures.map(feat => {
+          const rawStr = typeof feat === 'string' ? feat : feat.text;
+          const isChecked = typeof feat === 'object' && feat.isChecked;
+          const humanized = HebrewNormalizer.humanizeFeatureItem(rawStr);
+
+          let itemStatus = 'planned';
+          if (pStatus === 'completed' || isChecked) {
+            itemStatus = 'done';
+          } else if (pStatus === 'active') {
+            // Live Honest State check: if referenced files already exist on disk, mark as done!
+            const existsOnDisk = HebrewNormalizer.verifyFilesExist(projectPath, humanized.fileHints);
+            itemStatus = existsOnDisk ? 'done' : 'active';
+          }
+
+          return {
+            status: itemStatus,
+            title: humanized.title,
+            desc: humanized.desc
+          };
+        });
+
+        // Clean description
+        if (!rawObjectives) {
+          rawObjectives = pBody.split('\n').find(line => {
+            const l = line.trim();
+            return l.length > 10 && !l.startsWith('-') && !l.startsWith('*') && !l.startsWith('#') && !l.startsWith('|');
+          }) || `פאזת פיתוח ${pNum} במסגרת תוכנית האב של שרגא.`;
+        }
+        const cleanDesc = HebrewNormalizer.cleanDescription(rawObjectives);
+
+        const doneDeliverablesCount = deliverables.filter(d => d.status === 'done').length;
 
         phases.push({
           phaseNum: pNum,
           title: pTitle,
           rawTitle,
-          subtitle: `שלב ${pNum} · ${deliverables.length} משימות`,
+          subtitle: `שלב ${pNum} · ${deliverables.length} רכיבי ליבה`,
           status: pStatus,
           stageLabel: pNum === activePhaseIndex ? 'שלב 4: סשן בנייה פעיל (Build)' : (pStatus === 'completed' ? 'הושלם ואושר ✓' : 'מתוכנן להמשך ○'),
           description: cleanDesc,
           deliverables: deliverables.length > 0 ? deliverables : [
             { status: pStatus === 'completed' ? 'done' : (pStatus === 'active' ? 'active' : 'planned'), title: pTitle, desc: 'משימת ליבה של הפאזה' }
           ],
+          acCount,
+          riskGateCount,
+          doneDeliverablesCount,
           testsCount: '0',
           testsLabel: 'בדיקות יחידה',
-          gateScore: pStatus === 'completed' ? '✓ אושר' : '--',
+          gateScore: pStatus === 'completed' ? '✓ אושר' : (acCount > 0 ? `${acCount} תנאי קבלה` : '--'),
           gateLabel: 'שער איכות ובקרת שרגא',
           verdict: pStatus === 'completed' ? 'אושר מלא (Approved)' : (pStatus === 'active' ? 'בסשן בנייה פעיל' : 'טרם החל'),
           nextActionHeader: pStatus === 'active' ? 'מה נדרש כעת מול Claude Code / הסוכן?' : `סטטוס פאזה ${pNum}:`,
           nextActionSub: pStatus === 'active' ? 'השלב המיידי לביצוע:' : 'מצב הפאזה:',
-          nextActionBody: pStatus === 'active' ? 'השלמת משימות הבנייה, הרצת בדיקות מקומיות והפקת דו״ח ביצוע (report).' : (pStatus === 'completed' ? 'הפאזה הושלמה ואושרה במלואה ע״י שרגא.' : 'ממתין לסיום הפאזות הקודמות.')
+          nextActionBody: pStatus === 'active' ? 'השלמת בניית רכיבי הליבה של הפאזה, אימות תנאי הקבלה (AC) והפקת דו״ח ביצוע (Report).' : (pStatus === 'completed' ? 'הפאזה הושלמה ואושרה במלואה ע״י שרגא.' : 'ממתין לסיום הפאזות הקודמות.')
         });
       }
     }
 
     phases.sort((a, b) => a.phaseNum - b.phaseNum);
 
-    // Fallback if Plan.md was empty
+    // Fallback if Plan.md was empty (Initial Shraga onboarding / Pre-Plan stage)
     if (phases.length === 0) {
-      for (let i = 0; i <= Math.max(activePhaseIndex + 1, 3); i++) {
+      const hasArchPlan = fs.existsSync(path.join(shragaDir, 'project-arch-plan.md')) || fs.existsSync(path.join(shragaDir, 'PRD.md'));
+      const hasDesignSys = fs.existsSync(path.join(shragaDir, 'DESIGN_SYSTEM.md'));
+
+      phases.push({
+        phaseNum: 0,
+        title: 'שלב 0: אפיון ראשוני והקמת תשתית שרגא',
+        rawTitle: 'Onboarding & Architecture Setup',
+        subtitle: 'שלב הקמה ואפיון',
+        status: 'active',
+        stageLabel: 'שלב 1-2: אפיון מוצר ותוכנית פאזות',
+        description: 'הפרויקט אותחל במתודולוגיית שרגא ונמצא כעת בשלב גיבוש מסמך האפיון (PRD), שפת העיצוב ותוכנית השלבים (Plan.md).',
+        deliverables: [
+          {
+            status: 'done',
+            title: 'אתחול תיקיית שרגא ומעקב שלבים',
+            desc: 'הוקמה תיקיית shraga/ וקובץ PHASE.md מוגדר לשלב 0.'
+          },
+          {
+            status: hasArchPlan ? 'done' : 'active',
+            title: 'גיבוש מסמך אפיון וארכיטקטורה (PRD)',
+            desc: 'הגדרת מטרות המוצר, קהל היעד, מודל הנתונים וגבולות הגזרה בקובץ project-arch-plan.md.'
+          },
+          {
+            status: hasDesignSys ? 'done' : 'planned',
+            title: 'הגדרת שפת עיצוב וצבעים (Design System)',
+            desc: 'יצירת קובץ DESIGN_SYSTEM.md עם פלטת הצבעים, הטיפוגרפיה ורכיבי הממשק.'
+          },
+          {
+            status: 'planned',
+            title: 'בניית תוכנית העבודה בשלבים (Plan.md)',
+            desc: 'חלוקת הפרויקט לפאזות מבוקרות והפקת פרומפט הבנייה הראשון.'
+          }
+        ],
+        acCount: 3,
+        riskGateCount: 1,
+        doneDeliverablesCount: 1 + (hasArchPlan ? 1 : 0) + (hasDesignSys ? 1 : 0),
+        testsCount: '0',
+        testsLabel: 'בדיקות יחידה',
+        gateScore: 'בשלב אפיון',
+        gateLabel: 'שער איכות ובקרת שרגא',
+        verdict: 'באפיון ראשוני',
+        nextActionHeader: 'מה נדרש כעת מול שרגא?',
+        nextActionSub: 'השלמת אפיון ותוכנית עבודה:',
+        nextActionBody: 'יש להשלים את שיחת האפיון מול שרגא כדי לייצר את קובצי הארכיטקטורה (project-arch-plan.md) ותוכנית השלבים (Plan.md).'
+      });
+
+      for (let i = 1; i <= 3; i++) {
         phases.push({
           phaseNum: i,
-          title: `פאזה ${i}`,
-          subtitle: i < activePhaseIndex ? '✓ הושלם' : (i === activePhaseIndex ? '⚡ פעיל' : '○ מתוכנן'),
-          status: i < activePhaseIndex ? 'completed' : (i === activePhaseIndex ? 'active' : 'planned'),
-          description: `שלב ${i} בפרויקט.`,
-          deliverables: [{ status: i < activePhaseIndex ? 'done' : (i === activePhaseIndex ? 'active' : 'planned'), title: `משימות פאזה ${i}`, desc: '' }]
+          title: `שלב ${i}: יוגדר בתוכנית העבודה`,
+          subtitle: '○ יוגדר ב-Plan.md',
+          status: 'planned',
+          stageLabel: 'ממתין לאישור תוכנית העבודה ○',
+          description: `שלב ${i} יפורט אוטומטית ברגע שקובץ Plan.md יופק ויאושר ע״י שרגא.`,
+          deliverables: [
+            { status: 'planned', title: `תכולת שלב ${i} תופיע לאחר אישור תוכנית העבודה`, desc: 'טרם הוגדר ב-Plan.md.' }
+          ],
+          acCount: 0,
+          riskGateCount: 0
         });
       }
     }
@@ -185,13 +309,13 @@ export class ShragaAdapter {
           const targetPhase = phases.find(p => p.phaseNum === revNum);
           if (targetPhase) {
             if (/Approved with conditions/i.test(revContent)) {
-              targetPhase.verdict = 'Approved with conditions (אושר עם תנאים)';
-              targetPhase.gateScore = 'אושר עם תנאים';
+              targetPhase.verdict = 'אושר עם תנאים (Approved with conditions)';
+              targetPhase.gateScore = '✓ אושר עם תנאים';
             } else if (/Approved/i.test(revContent)) {
-              targetPhase.verdict = 'Approved (אושר מלא ✓)';
+              targetPhase.verdict = 'אושר מלא (Approved ✓)';
               targetPhase.gateScore = '✓ 100%';
             } else if (/Reject/i.test(revContent)) {
-              targetPhase.verdict = 'Rejected (נדחה לתיקונים)';
+              targetPhase.verdict = 'נדחה לתיקונים (Rejected)';
               targetPhase.gateScore = 'נדחה לבדיקה חוזרת';
             }
           }
@@ -234,8 +358,9 @@ export class ShragaAdapter {
     }
 
     // 7. Accurately set Stage and Next Action based on artifacts lifecycle
+    const hasPlanFile = fs.existsSync(planFile);
     const activePhaseObj = phases.find(p => p.phaseNum === activePhaseIndex);
-    if (activePhaseObj) {
+    if (activePhaseObj && hasPlanFile) {
       const hasReview = fs.existsSync(path.join(shragaDir, 'reviews', `phase-${activePhaseIndex}-review.md`));
       const hasReport = fs.existsSync(path.join(shragaDir, 'reports', `phase-${activePhaseIndex}-report.md`));
       const hasPrompt = fs.existsSync(path.join(shragaDir, 'prompts', `phase-${activePhaseIndex}-prompt.md`));
@@ -254,7 +379,7 @@ export class ShragaAdapter {
         activePhaseObj.stageLabel = `שלב 4: סשן בנייה פעיל (Build)`;
         activePhaseObj.nextActionHeader = `מה נדרש כעת מול Claude Code / הסוכן?`;
         activePhaseObj.nextActionSub = `השלב המיידי לביצוע:`;
-        activePhaseObj.nextActionBody = `השלמת משימות הבנייה, הרצת בדיקות מקומיות והפקת דו״ח ביצוע (report).`;
+        activePhaseObj.nextActionBody = `השלמת משימות הבנייה של שלב ${activePhaseIndex}, עמידה ב-${activePhaseObj.acCount || ''} תנאי הקבלה (AC) והפקת דו״ח ביצוע (Report).`;
       } else {
         activePhaseObj.stageLabel = `שלב 3: אפיון פאזה והפקת פרומפט`;
         activePhaseObj.nextActionHeader = `מה נדרש מול שרגא?`;
@@ -277,5 +402,31 @@ export class ShragaAdapter {
       timestamp: Date.now(),
       phases
     };
+  }
+
+  /**
+   * Splits inline semicolon-separated features while respecting parentheses
+   */
+  static splitInlineFeatures(str) {
+    const results = [];
+    let current = '';
+    let parenDepth = 0;
+
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (ch === '(') parenDepth++;
+      else if (ch === ')') parenDepth = Math.max(0, parenDepth - 1);
+
+      if (ch === ';' && parenDepth === 0) {
+        if (current.trim()) results.push({ text: current.trim(), isChecked: false });
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    if (current.trim()) {
+      results.push({ text: current.trim().replace(/\.$/, ''), isChecked: false });
+    }
+    return results;
   }
 }

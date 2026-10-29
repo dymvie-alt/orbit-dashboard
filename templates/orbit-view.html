@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit Dashboard — מלווה פרויקטים חכם</title>
+  <title>Orbit Dashboard — מרכז בקרה רב-פרויקטלי</title>
   <!-- Antigravity / Tailwind CDN -->
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <script>
@@ -14,14 +14,13 @@
   <style>
     /* CSS Theme Variables (Dynamic Light / Dark) */
     :root {
-      /* Defaults (Light Theme - High Contrast) */
       --color-primary: #2F6F5E;
       --color-primary-hover: #255A4C;
       --color-primary-soft: rgba(47, 111, 94, 0.12);
       --color-secondary: #0ea5e9;
       --color-accent: #f43f5e;
       --color-success: #15803d;
-      --color-warning: #b45309;
+      --color-warning: #d97706;
       --color-bg: #F7F5F0;
       --color-surface: #FFFFFF;
       --color-surface-card: #FFFFFF;
@@ -54,15 +53,15 @@
     * {
       box-sizing: border-box;
       scrollbar-width: thin;
-      scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+      scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
     }
 
     *::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
     }
     *::-webkit-scrollbar-thumb {
-      background: rgba(100, 116, 139, 0.4);
+      background: rgba(100, 116, 139, 0.35);
       border-radius: 9999px;
     }
 
@@ -77,6 +76,8 @@
       width: 100vw;
       margin: 0;
       padding: 0;
+      direction: rtl;
+      text-align: right;
       transition: background-color 0.25s ease, color 0.25s ease;
     }
 
@@ -84,20 +85,64 @@
       background: var(--color-surface-card);
       border: 1px solid var(--color-border);
       border-radius: 1rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
       transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
     html.dark .orbit-card {
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     }
 
+    /* Project Sidebar Dock Item */
+    .project-dock-btn {
+      border: 1.5px solid var(--color-border);
+      border-radius: 0.85rem;
+      background: var(--color-bg);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: right;
+      direction: rtl;
+      position: relative;
+      overflow: hidden;
+    }
+    .project-dock-btn:hover {
+      border-color: var(--color-primary);
+      transform: translateX(-2px);
+      background: var(--color-surface);
+    }
+    .project-dock-btn.active-project {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+      box-shadow: 0 2px 10px var(--color-primary-soft);
+      border-width: 2px;
+    }
+
+    /* FOCUS BEACON ANIMATION (Milestone / Phase Completed Alert!) */
+    @keyframes focus-beacon-glow {
+      0%, 100% {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45), 0 0 14px rgba(245, 158, 11, 0.35);
+      }
+      50% {
+        border-color: #ea580c;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2), 0 0 22px rgba(234, 88, 12, 0.55);
+      }
+    }
+    .project-dock-btn.focus-beacon {
+      border-color: #f59e0b !important;
+      border-width: 2px !important;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(234, 88, 12, 0.06)) !important;
+      animation: focus-beacon-glow 2s infinite ease-in-out;
+    }
+
     .phase-step {
       border: 1px solid var(--color-border);
-      border-radius: 0.75rem;
-      padding: 0.45rem 0.65rem;
+      border-radius: 0.85rem;
+      padding: 0.55rem 0.8rem;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       background: var(--color-surface);
+      text-align: right;
+      direction: rtl;
     }
     .phase-step:hover {
       border-color: var(--color-primary);
@@ -119,12 +164,18 @@
       outline-offset: 1px;
     }
 
-    @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.05); }
+    .deliverable-row {
+      border: 1px solid var(--color-border);
+      border-radius: 0.85rem;
+      padding: 0.6rem 0.85rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      direction: rtl;
+      text-align: right;
     }
-    .animate-pulse-subtle {
-      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    .deliverable-row:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     @keyframes spin-slow {
@@ -136,311 +187,433 @@
     }
   </style>
 </head>
-<body class="flex flex-col h-screen max-h-screen p-2.5 sm:p-3 gap-2.5 select-none">
+<body class="flex h-screen max-h-screen p-2.5 sm:p-3.5 gap-3 select-none overflow-hidden" dir="rtl">
 
-  <!-- ==================== 1. HEADER (Compact, Zero-Scroll) ==================== -->
-  <header class="orbit-card px-4 py-2.5 flex items-center justify-between shrink-0">
-    <div class="flex items-center gap-3">
-      <!-- Orbit Brand Orb -->
-      <div class="relative w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
-        <span class="animate-spin-slow">🛰️</span>
-        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white" style="background-color: var(--color-success);"></span>
-      </div>
-
-      <div>
-        <div class="flex items-center gap-2">
-          <div id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
-            <span>Orbit</span>
-            <span class="opacity-40 font-light">/</span>
-            <span id="headerProjectTitle" style="color: var(--color-primary); font-weight: 800;">טוען פרויקט...</span>
-          </div>
-          <span id="headerAdapterBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
-            מתאם שרגא (Shraga)
-          </span>
-          <span id="headerPhasePill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
-            שלב 0 פעיל
-          </span>
-        </div>
-        <div id="headerSubtitle" class="text-xs flex items-center gap-1.5 mt-0.5 truncate max-w-xl" style="color: var(--color-text-muted);">
-          סנכרון רציף פסיבי (Zero-Footprint) · מלווה פיתוח בזמן אמת
+  <!-- ==================== A. RIGHT VERTICAL SIDEBAR: MULTI-PROJECT DOCK ==================== -->
+  <aside id="projectSidebar" class="orbit-card w-56 shrink-0 flex flex-col justify-between p-3 transition-all duration-300 overflow-hidden" dir="rtl">
+    <!-- Top Dock Header -->
+    <div class="flex items-center justify-between pb-2.5 mb-2 border-b shrink-0" style="border-color: var(--color-border);">
+      <div id="sidebarHeaderTitle" class="flex items-center gap-2 min-w-0">
+        <span class="text-base">🗂️</span>
+        <div class="truncate">
+          <div class="text-xs font-black tracking-tight" style="color: var(--color-text);">פרויקטים פעילים</div>
+          <div id="sidebarProjectsCount" class="text-[10px] font-bold" style="color: var(--color-primary);">4 דשבורדים מחוברים</div>
         </div>
       </div>
+      <button onclick="toggleSidebarCollapse()" id="btnCollapseSidebar" title="כווץ / הרחב תפריט פרויקטים" class="w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold cursor-pointer shrink-0 transition" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
+        ❮
+      </button>
     </div>
 
-    <!-- Actions, Live Ticker & Theme Switcher -->
-    <div class="flex items-center gap-3">
-      <!-- Live Ticking Engine -->
-      <div class="text-left sm:text-right hidden sm:block">
-        <div class="text-[11px] flex items-center justify-end gap-1" style="color: var(--color-text-muted);">
-          <span>עודכן ב-</span>
-          <span id="tickerClock" class="font-mono font-bold" style="color: var(--color-text);">--:--:--</span>
-        </div>
-        <div class="text-xs font-bold flex items-center justify-end gap-1.5" style="color: var(--color-primary);">
-          <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: var(--color-success);"></span>
-          <span id="tickerRelative">ממש עכשיו</span>
-        </div>
-      </div>
-
-      <!-- Quick Action Controls -->
-      <div class="flex items-center gap-1.5">
-        <!-- Theme Switcher (Light / Dark) -->
-        <button id="btnThemeToggle" onclick="toggleTheme()" title="החלף מצב בהיר / כהה" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center justify-center" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
-          <span id="themeToggleIcon">🌙</span>
-        </button>
-
-        <!-- Manual Refresh -->
-        <button id="btnManualRefresh" onclick="manualRefresh()" title="רענן נתונים עכשיו" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center gap-1" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
-          <span id="refreshIcon">↻</span>
-          <span class="hidden md:inline">רענן</span>
-        </button>
-
-        <!-- Open External in Standalone Browser -->
-        <button id="btnOpenBrowser" onclick="openExternal()" title="פתח בחלון דפדפן נפרד (מסך שני)" class="p-2 rounded-lg border font-bold transition-all text-xs flex items-center gap-1" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
-          <span>↗</span>
-        </button>
-
-        <!-- About Modal Button -->
-        <button id="btnAbout" onclick="openAboutModal()" title="אודות Orbit Dashboard" class="w-8 h-8 rounded-lg border font-black transition-all text-sm flex items-center justify-center" style="background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary);">
-          ?
-        </button>
-      </div>
+    <!-- Dynamic Projects List (Adaptive Height: Button Height X Number of Projects = Zero Scroll!) -->
+    <div id="projectDockList" class="flex-1 flex flex-col gap-2 min-h-0 overflow-y-auto py-0.5">
+      <!-- Populated dynamically by renderProjectDock() -->
     </div>
-  </header>
 
-  <!-- ==================== 2. ROADMAP STEPPER (Interactive Time Machine) ==================== -->
-  <nav id="roadmapContainer" class="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2 shrink-0">
-    <!-- Populated dynamically by renderRoadmap() -->
-  </nav>
-
-  <!-- Notice Banner if Viewing History -->
-  <div id="historyNoticeBanner" class="hidden px-3 py-1.5 rounded-lg border text-xs flex items-center justify-between shrink-0" style="background-color: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-text);">
-    <div class="flex items-center gap-2">
-      <span>🕰️</span>
-      <span>אתה צופה בתמונת מצב היסטורית: <strong id="historyPhaseTitle">פאזה 0</strong></span>
+    <!-- Bottom Add Project & Simulation Controls -->
+    <div id="sidebarFooter" class="pt-2.5 mt-2 border-t space-y-1.5 shrink-0" style="border-color: var(--color-border);">
+      <button onclick="openAddProjectModal()" class="w-full py-2 px-3 rounded-xl border font-extrabold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm" style="background: var(--color-primary); border-color: var(--color-primary); color: #ffffff;">
+        <span class="text-sm leading-none">+</span>
+        <span class="sidebar-text-only">הוסף פרויקט להצגה</span>
+      </button>
+      <button onclick="triggerDemoFocusBeacon()" title="הדגם התראת FOCUS של סיום שלב בפרויקט מקביל" class="w-full py-1.5 px-2.5 rounded-lg border font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
+        <span>✨</span>
+        <span class="sidebar-text-only">הדגם התראת סיום שלב</span>
+      </button>
     </div>
-    <button onclick="resetToActivePhase()" class="text-xs font-bold underline cursor-pointer" style="color: var(--color-primary);">
-      חזור לפאזה הפעילה כעת (שלב <span id="activePhaseResetNum">0</span>) ➔
-    </button>
-  </div>
+  </aside>
 
-  <!-- Notice Banner if Generic Git Adapter (Transparency Principle) -->
-  <div id="transparencyBanner" class="hidden px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 shrink-0" style="background-color: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #b45309;">
-    <span>ℹ️</span>
-    <span><strong>שקיפות מובנית:</strong> הפרויקט מתנהל ללא תוכנית-על מובנית (Zoom-out roadmap); הדשבורד משקף פעילות קוד, קומיטים ובדיקות מקומיות.</span>
-  </div>
+  <!-- ==================== B. MAIN DASHBOARD WORKSPACE (100dvh Zero-Scroll) ==================== -->
+  <div class="flex-1 flex flex-col gap-2.5 min-w-0 min-h-0 h-full overflow-hidden" dir="rtl">
 
-  <!-- ==================== 3. THREE-COLUMN ZERO-SCROLL CORE ==================== -->
-  <main class="grid grid-cols-1 md:grid-cols-3 gap-2.5 flex-1 min-h-0">
-
-    <!-- ========== COLUMN 1: CONTEXT & MACRO ========== -->
-    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
-      <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
-        <div class="flex items-center justify-between">
-          <span id="col1StageBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
-            שלב 4: סשן בנייה פעיל (Build)
-          </span>
-          <span id="col1StatusIndicator" class="text-[11px] font-bold px-2 py-0.5 rounded" style="background-color: rgba(245, 158, 11, 0.15); color: #b45309;">
-            ⚡ פעיל כעת
-          </span>
+    <!-- 1. HEADER -->
+    <header class="orbit-card px-4 py-2.5 flex items-center justify-between shrink-0" dir="rtl">
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Orbit Brand Orb -->
+        <div class="relative w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
+          <span class="animate-spin-slow">🛰️</span>
+          <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white" style="background-color: var(--color-success);"></span>
         </div>
 
-        <h2 id="col1PhaseTitle" class="text-base sm:text-lg font-black leading-snug" style="color: var(--color-text);">
-          טוען נתונים...
-        </h2>
-
-        <!-- Phase Essence Card -->
-        <div class="p-3 rounded-xl border space-y-1" style="background-color: var(--color-bg); border-color: var(--color-border);">
-          <div class="text-[11px] font-bold" style="color: var(--color-primary);">מהות הפאזה והמשמעות:</div>
-          <p id="col1PhaseDesc" class="text-xs sm:text-sm leading-relaxed" style="color: var(--color-text);">
-            טוען את תיאור הפאזה והמטרות המרכזיות שלה...
-          </p>
-        </div>
-
-        <!-- Macro Progress Summary -->
-        <div class="p-3 rounded-xl border space-y-2" style="background-color: var(--color-bg); border-color: var(--color-border);">
-          <div class="flex justify-between items-center text-xs">
-            <span class="font-semibold" style="color: var(--color-text-muted);">התקדמות כוללת בפרויקט:</span>
-            <span id="col1MacroProgressText" class="font-bold" style="color: var(--color-primary);">0%</span>
+        <div class="text-right min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <div id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
+              <span>Orbit</span>
+              <span class="opacity-40 font-light">/</span>
+              <span id="headerProjectTitle" style="color: var(--color-primary); font-weight: 900;">טוען פרויקט...</span>
+            </div>
+            <span id="headerAdapterBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
+              מתאם שרגא
+            </span>
+            <span id="headerPhasePill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
+              שלב 0 פעיל
+            </span>
           </div>
-          <div class="w-full h-2.5 rounded-full overflow-hidden" style="background-color: var(--color-border);">
-            <div id="col1MacroProgressBar" class="h-full rounded-full transition-all duration-500" style="width: 0%; background-color: var(--color-primary);"></div>
+          <div id="headerSubtitle" class="text-xs mt-0.5 truncate max-w-2xl text-right" style="color: var(--color-text-muted);">
+            סנכרון רציף פסיבי · מרכז בקרה רב-פרויקטלי בזמן אמת
           </div>
         </div>
       </div>
 
-      <!-- Metrics & Quality Indicators -->
-      <div class="pt-2 border-t shrink-0 space-y-1.5 mt-2" style="border-color: var(--color-border);">
-        <div class="text-[11px] font-bold" style="color: var(--color-text-muted);">מדדי איכות ואימות (Telemetry):</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="border rounded-lg p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
-            <div id="metricTestsVal" class="text-lg sm:text-xl font-black" style="color: var(--color-success);">0</div>
-            <div id="metricTestsLbl" class="text-[10px] font-semibold" style="color: var(--color-text-muted);">בדיקות יחידה שעברו</div>
+      <!-- Actions, Live Ticker & Theme Switcher -->
+      <div class="flex items-center gap-3 shrink-0">
+        <!-- Global Unread Focus Banner Pill (if another project finished a phase!) -->
+        <div id="headerGlobalFocusAlert" onclick="jumpToFocusedProject()" class="hidden px-3 py-1.5 rounded-xl border text-xs font-extrabold items-center gap-1.5 cursor-pointer animate-pulse" style="background: rgba(245, 158, 11, 0.16); border-color: #f59e0b; color: #b45309;">
+          <span>🔔</span>
+          <span id="headerGlobalFocusText">פרויקט סיים שלב! לחץ למעבר</span>
+        </div>
+
+        <!-- Live Ticking Engine -->
+        <div class="text-left hidden md:block">
+          <div class="text-[11px] flex items-center justify-end gap-1" style="color: var(--color-text-muted);">
+            <span>עודכן ב-</span>
+            <span id="tickerClock" class="font-mono font-bold" dir="ltr" style="color: var(--color-text);">--:--:--</span>
           </div>
-          <div class="border rounded-lg p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
-            <div id="metricGateVal" class="text-lg sm:text-xl font-black" style="color: var(--color-primary);">--</div>
-            <div id="metricGateLbl" class="text-[10px] font-semibold" style="color: var(--color-text-muted);">שער איכות ובקרת שרגא</div>
+          <div class="text-xs font-bold flex items-center justify-end gap-1.5" style="color: var(--color-primary);">
+            <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: var(--color-success);"></span>
+            <span id="tickerRelative">ממש עכשיו</span>
           </div>
+        </div>
+
+        <!-- Quick Action Controls -->
+        <div class="flex items-center gap-1.5">
+          <button id="btnThemeToggle" onclick="toggleTheme()" title="החלף מצב בהיר / כהה" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center justify-center cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+            <span id="themeToggleIcon">🌙</span>
+          </button>
+
+          <button id="btnManualRefresh" onclick="manualRefresh()" title="רענן נתונים עכשיו" class="px-2.5 py-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+            <span id="refreshIcon">↻</span>
+            <span class="hidden sm:inline">רענן</span>
+          </button>
+
+          <button id="btnOpenBrowser" onclick="openExternal()" title="פתח בחלון דפדפן נפרד (מסך שני)" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+            <span>↗</span>
+          </button>
+
+          <button id="btnAbout" onclick="openAboutModal()" title="אודות Orbit Dashboard" class="w-8 h-8 rounded-xl border font-black transition-all text-sm flex items-center justify-center cursor-pointer" style="background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary);">
+            ?
+          </button>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- ========== COLUMN 2: SCOPE & CODE ACTIVITY (Honest State) ========== -->
-    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
-      <div class="flex flex-col gap-2.5 overflow-hidden flex-1">
-        <div class="flex items-center justify-between shrink-0">
-          <span class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--color-primary);">
-            מנוע אמת (Honest State)
-          </span>
-          <span id="col2TotalCountBadge" class="text-[11px] font-bold px-2 py-0.5 rounded" style="background-color: var(--color-bg); color: var(--color-text-muted);">
-            0 משימות
-          </span>
-        </div>
+    <!-- 2. ROADMAP STEPPER (Interactive Time Machine) -->
+    <nav id="roadmapContainer" class="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2 shrink-0" dir="rtl">
+      <!-- Populated dynamically by renderRoadmap() -->
+    </nav>
 
-        <h3 id="col2ScopeTitle" class="text-sm sm:text-base font-extrabold shrink-0" style="color: var(--color-text);">
-          תכולת עבודה ופעילות בקוד:
-        </h3>
-
-        <!-- Dynamic Deliverables List -->
-        <div id="col2DeliverablesList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-          <!-- Populated by renderDeliverables() -->
-        </div>
+    <!-- Notice Banner if Viewing History -->
+    <div id="historyNoticeBanner" class="hidden px-3.5 py-1.5 rounded-xl border text-xs flex items-center justify-between shrink-0" dir="rtl" style="background-color: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-text);">
+      <div class="flex items-center gap-2">
+        <span>🕰️</span>
+        <span>אתה צופה בתמונת מצב של: <strong id="historyPhaseTitle">שלב 0</strong></span>
       </div>
+      <button onclick="resetToActivePhase()" class="text-xs font-bold underline cursor-pointer" style="color: var(--color-primary);">
+        חזור לשלב הפעיל כעת (שלב <span id="activePhaseResetNum">0</span>) ➔
+      </button>
+    </div>
 
-      <!-- Architecture Review / Quality Gate Verdict -->
-      <div class="pt-2 border-t shrink-0 mt-2" style="border-color: var(--color-border);">
-        <div class="p-2.5 rounded-xl border flex items-center justify-between text-xs" style="background-color: var(--color-bg); border-color: var(--color-border);">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold" style="color: var(--color-text-muted);">ביקורת ארכיטקטורה / איכות:</span>
-            <span id="verdictLabel" class="text-xs font-bold" style="color: var(--color-text);">ממתין לסיום הבנייה</span>
+    <!-- Notice Banner if Generic Git Adapter -->
+    <div id="transparencyBanner" class="hidden px-3.5 py-1.5 rounded-xl border text-xs flex items-center gap-2 shrink-0" dir="rtl" style="background-color: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #b45309;">
+      <span>ℹ️</span>
+      <span><strong>שקיפות מובנית:</strong> הפרויקט מתנהל ללא תוכנית-על מובנית; הדשבורד משקף פעילות קוד, קומיטים ובדיקות מקומיות.</span>
+    </div>
+
+    <!-- 3. PROPORTIONAL 12-COL ZERO-SCROLL CORE -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0" dir="rtl">
+
+      <!-- ========== COLUMN 1 (Right, 4 cols): CONTEXT, ESSENCE & TELEMETRY ========== -->
+      <section class="orbit-card p-4 lg:col-span-4 flex flex-col justify-between overflow-hidden text-right" dir="rtl">
+        <div class="flex flex-col gap-3 flex-1 justify-between min-h-0">
+          <!-- Top Stage & Status -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span id="col1StageBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full border truncate" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
+                שלב 4: סשן בנייה פעיל
+              </span>
+              <span id="col1StatusIndicator" class="text-xs font-extrabold px-2 py-0.5 rounded-lg shrink-0" style="background-color: rgba(245, 158, 11, 0.15); color: #b45309;">
+                ⚡ פעיל כעת
+              </span>
+            </div>
+
+            <h2 id="col1PhaseTitle" class="text-base sm:text-lg font-black leading-snug text-right" style="color: var(--color-text);">
+              טוען נתונים...
+            </h2>
           </div>
-          <span id="verdictBadge" class="px-2.5 py-1 rounded-full text-xs font-extrabold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
-            Pending
-          </span>
-        </div>
-      </div>
-    </section>
 
-    <!-- ========== COLUMN 3: NEXT STEP & GUIDANCE ========== -->
-    <section class="orbit-card p-4 flex flex-col justify-between overflow-hidden">
-      <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1" style="color: var(--color-accent);">
-            <span>🎯</span> הצעד המעשי הבא
-          </span>
-          <span id="col3StatusPill" class="text-[11px] font-bold border px-2 py-0.5 rounded" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
-            הנחיה ברורה
-          </span>
-        </div>
-
-        <h3 class="text-sm sm:text-base font-black flex items-center gap-1.5" style="color: var(--color-text);">
-          <span>🚀</span> <span id="col3NextActionTitle">מה עושים עכשיו?</span>
-        </h3>
-
-        <!-- Main Direct Instruction Box -->
-        <div id="col3InstructionBox" class="p-3.5 rounded-xl border space-y-2" style="background-color: var(--color-bg); border-color: var(--color-border);">
-          <div id="col3NextHeader" class="text-xs font-bold" style="color: var(--color-primary);">
-            השלב המיידי לביצוע:
+          <!-- Phase Essence Card -->
+          <div class="p-3.5 rounded-2xl border flex-1 flex flex-col justify-center space-y-1.5 text-right" dir="rtl" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div class="text-xs font-extrabold flex items-center gap-1.5" style="color: var(--color-primary);">
+              <span>📌</span>
+              <span>מה קורה בשלב הזה (מהות ומשמעות):</span>
+            </div>
+            <p id="col1PhaseDesc" class="text-xs sm:text-sm leading-relaxed font-medium text-right" dir="rtl" style="color: var(--color-text);">
+              טוען את תיאור הפאזה והמטרות המרכזיות שלה...
+            </p>
           </div>
-          <div id="col3NextBody" class="text-xs leading-relaxed space-y-1" style="color: var(--color-text);">
-            טוען הנחיות פעולה...
+
+          <!-- Macro Progress Summary -->
+          <div class="p-3 rounded-xl border space-y-1.5" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold" style="color: var(--color-text-muted);">התקדמות כוללת בפרויקט:</span>
+              <span id="col1MacroProgressText" class="font-black text-xs" style="color: var(--color-primary);">0%</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full overflow-hidden" style="background-color: var(--color-border);">
+              <div id="col1MacroProgressBar" class="h-full rounded-full transition-all duration-500" style="width: 0%; background-color: var(--color-primary);"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Copy-Paste Suggested Prompt Box (if available) -->
-        <div id="col3PromptContainer" class="hidden p-3 rounded-xl border space-y-2" style="background-color: var(--color-primary-soft); border-color: var(--color-primary);">
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-bold" style="color: var(--color-primary);">פרומפט מומלץ לסשן הבא:</span>
-            <button onclick="copyPromptText()" class="text-[10px] px-2 py-0.5 rounded border transition" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);">
-              <span id="copyBtnText">העתק 📋</span>
+        <!-- Metrics & Quality Indicators -->
+        <div class="pt-2.5 border-t shrink-0 space-y-1.5 mt-2.5" style="border-color: var(--color-border);">
+          <div class="text-[11px] font-bold" style="color: var(--color-text-muted);">מדדי איכות ואימות לשלב:</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="border rounded-xl p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
+              <div id="metricTestsVal" class="text-lg sm:text-xl font-black" style="color: var(--color-success);">0</div>
+              <div id="metricTestsLbl" class="text-[11px] font-bold mt-0.5" style="color: var(--color-text-muted);">בדיקות יחידה שעברו</div>
+            </div>
+            <div class="border rounded-xl p-2 text-center" style="background-color: var(--color-bg); border-color: var(--color-border);">
+              <div id="metricGateVal" class="text-base sm:text-lg font-black truncate" style="color: var(--color-primary);">--</div>
+              <div id="metricGateLbl" class="text-[11px] font-bold mt-0.5" style="color: var(--color-text-muted);">שער איכות ובקרת שרגא</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== COLUMN 2 (Center, 5 cols): CLEAN SCOPE CHECKLIST & EXPANDABLE DETAILS ========== -->
+      <section class="orbit-card p-4 lg:col-span-5 flex flex-col justify-between overflow-hidden text-right" dir="rtl">
+        <div class="flex flex-col gap-2.5 flex-1 min-h-0">
+          <!-- Header & Summary Pills -->
+          <div class="flex items-center justify-between gap-2 shrink-0 flex-wrap">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--color-primary);">
+                מנוע אמת ורכיבי השלב
+              </span>
+              <h3 id="col2ScopeTitle" class="text-sm sm:text-base font-black text-right mt-0.5" style="color: var(--color-text);">
+                מה בונים בשלב הזה (במבט חטוף):
+              </h3>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span id="col2TotalCountBadge" class="text-xs font-extrabold px-2 py-0.5 rounded-lg border" style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+                0 רכיבים
+              </span>
+              <div id="col2AcRiskPills" class="flex items-center gap-1 text-[11px] font-bold"></div>
+            </div>
+          </div>
+
+          <!-- Helper Hint -->
+          <div class="text-[11px] flex items-center justify-between px-1 shrink-0" style="color: var(--color-text-muted);">
+            <span>לחץ על כל שורה לפתיחת הפירוט הטכני המלא:</span>
+            <button id="btnToggleAllDetails" onclick="toggleAllDeliverables()" class="text-[11px] font-bold underline cursor-pointer" style="color: var(--color-primary);">
+              הרחב הכל ▾
             </button>
           </div>
-          <pre id="col3PromptCode" class="text-[11px] font-mono p-2.5 rounded-lg overflow-x-auto whitespace-pre-wrap select-text border" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);"></pre>
+
+          <!-- Dynamic Deliverables List -->
+          <div id="col2DeliverablesList" class="flex-1 overflow-y-auto flex flex-col justify-between gap-1.5 pl-1 text-right" dir="rtl">
+            <!-- Populated by renderDeliverables() -->
+          </div>
         </div>
-      </div>
 
-      <!-- Action Footer -->
-      <div class="pt-2 border-t shrink-0 mt-2" style="border-color: var(--color-border);">
-        <div class="flex items-center justify-between text-xs" style="color: var(--color-text-muted);">
-          <span>מצב שקט: <strong style="color: var(--color-success);">Daemon סורק</strong></span>
-          <span id="col3CycleStage" class="font-mono text-[11px] font-bold" style="color: var(--color-primary);">שלב 4: סשן בנייה פעיל</span>
+        <!-- Architecture Review / Quality Gate Verdict -->
+        <div class="pt-2.5 border-t shrink-0 mt-2.5" style="border-color: var(--color-border);">
+          <div class="p-2.5 rounded-xl border flex items-center justify-between text-xs" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div class="flex flex-col text-right">
+              <span class="text-[11px] font-bold" style="color: var(--color-text-muted);">סטטוס ביקורת ארכיטקטורה ואיכות:</span>
+              <span id="verdictLabel" class="text-xs sm:text-sm font-black mt-0.5" style="color: var(--color-text);">ממתין לסיום הבנייה</span>
+            </div>
+            <span id="verdictBadge" class="px-2.5 py-1 rounded-full text-xs font-extrabold border shrink-0" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
+              בביצוע
+            </span>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-  </main>
+      <!-- ========== COLUMN 3 (Left, 3 cols): NEXT STEP & ACTIONABLE GUIDANCE ========== -->
+      <section class="orbit-card p-4 lg:col-span-3 flex flex-col justify-between overflow-hidden text-right" dir="rtl">
+        <div class="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto pl-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1" style="color: var(--color-accent);">
+              <span>🎯</span> הצעד המעשי הבא
+            </span>
+            <span id="col3StatusPill" class="text-[11px] font-bold border px-2 py-0.5 rounded-full" style="background-color: rgba(22, 163, 74, 0.1); color: var(--color-success); border-color: rgba(22, 163, 74, 0.3);">
+              הנחיה ברורה
+            </span>
+          </div>
 
-  <!-- ==================== 4. ABOUT MODAL DRAWER ('?' Modal) ==================== -->
-  <div id="aboutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
-    <div class="orbit-card max-w-xl w-full p-5 sm:p-6 space-y-4 shadow-2xl relative select-text" onclick="event.stopPropagation()">
-      <!-- Close Button -->
-      <button onclick="closeAboutModal()" class="absolute top-4 left-4 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+          <h3 class="text-sm sm:text-base font-black flex items-center gap-1.5 text-right" style="color: var(--color-text);">
+            <span>🚀</span> <span id="col3NextActionTitle">מה עושים עכשיו?</span>
+          </h3>
+
+          <!-- Main Direct Instruction Box -->
+          <div id="col3InstructionBox" class="p-3.5 rounded-2xl border space-y-1.5 text-right" dir="rtl" style="background-color: var(--color-bg); border-color: var(--color-border);">
+            <div id="col3NextHeader" class="text-xs font-extrabold" style="color: var(--color-primary);">
+              השלב המיידי לביצוע:
+            </div>
+            <div id="col3NextBody" class="text-xs sm:text-sm leading-relaxed font-medium text-right" dir="rtl" style="color: var(--color-text);">
+              טוען הנחיות פעולה...
+            </div>
+          </div>
+
+          <!-- Collapsible Copy-Paste Suggested Prompt Box -->
+          <div id="col3PromptContainer" class="hidden rounded-2xl border overflow-hidden transition-all" style="background-color: var(--color-primary-soft); border-color: var(--color-primary);">
+            <div class="p-2.5 flex items-center justify-between text-xs">
+              <button onclick="togglePromptDrawer()" class="font-extrabold flex items-center gap-1.5 cursor-pointer text-right" style="color: var(--color-primary);">
+                <span>💬</span>
+                <span>פרומפט מוכן לסשן</span>
+                <span id="promptToggleArrow" class="text-[10px]">▾</span>
+              </button>
+              <button onclick="copyPromptText()" class="text-[11px] font-bold px-2 py-0.5 rounded-lg border transition cursor-pointer" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);">
+                <span id="copyBtnText">העתק 📋</span>
+              </button>
+            </div>
+            <div id="col3PromptDrawer" class="hidden px-2.5 pb-2.5">
+              <pre id="col3PromptCode" dir="ltr" class="text-[10px] font-mono p-2 rounded-xl overflow-x-auto max-h-32 whitespace-pre-wrap select-text border text-left" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="pt-2.5 border-t shrink-0 mt-2.5" style="border-color: var(--color-border);">
+          <div class="flex items-center justify-between text-[11px]" style="color: var(--color-text-muted);">
+            <span>ניטור רקע: <strong style="color: var(--color-success);">פעיל ושקט</strong></span>
+            <span id="col3CycleStage" class="font-bold text-[11px] truncate max-w-[130px]" style="color: var(--color-primary);">שלב 4: בנייה פעילה</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ==================== 4. ADD PROJECT / FOLDER PICKER MODAL ==================== -->
+  <div id="addProjectModal" onclick="closeAddProjectModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+    <div class="orbit-card max-w-xl w-full p-6 space-y-4 shadow-2xl relative select-text text-right" onclick="event.stopPropagation()">
+      <button onclick="closeAddProjectModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
         ✕
       </button>
 
-      <!-- Modal Header -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
-          🛰️
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white text-xl shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
+          📁
         </div>
         <div>
-          <h2 class="text-lg font-black" style="color: var(--color-text);">אודות Orbit Dashboard</h2>
-          <div class="text-xs font-semibold" style="color: var(--color-primary);">Continuous Zero-Touch Project Companion · v1.1.0</div>
+          <h2 class="text-lg font-black" style="color: var(--color-text);">בחר תיקייה של הפרויקט להצגה</h2>
+          <div class="text-xs font-semibold" style="color: var(--color-primary);">הוספת דשבורד לסרגל הפרויקטים או מעבר מהיר</div>
         </div>
       </div>
 
-      <!-- About Description (Hebrew) -->
-      <div class="p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed space-y-1.5" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
-        <strong class="block font-bold">מבט-על רציף ("מעוף הציפור") בזמן אמת:</strong>
-        <p>
-          Orbit Dashboard הוא מלווה הפיתוח החכם שלך, המעניק מבט-על רציף על התקדמות הפרויקט בזמן אמת. המערכת פועלת ברקע באופן פסיבי ומאובטח לחלוטין (Read-Only) מבלי לשנות או לזהם אף קובץ בקוד שלך.
-        </p>
-        <p>
-          Orbit מזהה באופן אוטומטי את שיטת העבודה של הפרויקט (שרגא, תוכניות פאזות עצמאיות, או פעילות קוד ו-Git), שואבת את שפת העיצוב, ומשקפת במבט אחד (ללא גלילה) איפה הפרויקט עומד, מה מבוצע כעת, מה שער האיכות הבא, ומה הצעד הנדרש לסיום.
-        </p>
-      </div>
-
-      <!-- English Summary -->
-      <div class="p-3 rounded-xl border text-[11px] leading-relaxed" dir="ltr" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
-        <strong>English Summary:</strong> Orbit Dashboard is an intelligent development companion providing a continuous bird's-eye view of your project's live progress. Operating in a completely passive, read-only mode, Orbit observes your workspace without modifying files in your codebase.
-      </div>
-
-      <!-- Metadata & Telemetry -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
-          <span class="block text-[10px]" style="color: var(--color-text-muted);">מתאם פעיל:</span>
-          <strong id="modalAdapter" style="color: var(--color-primary);">Shraga First-Class</strong>
-        </div>
-        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
-          <span class="block text-[10px]" style="color: var(--color-text-muted);">תדירות סריקה:</span>
-          <strong id="modalFrequency" style="color: var(--color-success);">כל 2 דקות (Daemon)</strong>
-        </div>
-        <div class="p-2 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border);">
-          <span class="block text-[10px]" style="color: var(--color-text-muted);">מצב אבטחה:</span>
-          <strong style="color: var(--color-secondary);">Read-Only (Zero-Touch)</strong>
+      <!-- 1. Auto-Discovered Projects in Workspace Roots -->
+      <div class="space-y-2">
+        <label class="text-xs font-extrabold block" style="color: var(--color-text);">
+          פרויקטים שזוהו אוטומטית במחשב שלך (לחיצה להצגה / חיבור מיידי):
+        </label>
+        <div id="discoveredProjectsList" class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+          <!-- Populated dynamically by renderDiscoveredProjects() -->
         </div>
       </div>
 
-      <!-- Shortcuts & Tips -->
-      <div class="text-[11px] flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
-        <span>מקשי קיצור: <code>Esc</code> לסגירה · <code>T</code> למצב כהה/בהיר · <code>R</code> לרענון</span>
-        <button onclick="closeAboutModal()" class="px-3 py-1 rounded-lg text-white font-bold text-xs transition" style="background: var(--color-primary);">
-          הבנתי, תודה
+      <!-- 2. Native Folder Picker / Custom Path Input -->
+      <div class="p-4 rounded-xl border space-y-3" style="background: var(--color-bg); border-color: var(--color-border);">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold" style="color: var(--color-text);">או בחר תיקייה אחרת מהמחשב:</span>
+          <label class="px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition flex items-center gap-1.5" style="background: var(--color-surface); border-color: var(--color-primary); color: var(--color-primary);">
+            <span>📂</span>
+            <span>פתח סייר תיקיות...</span>
+            <input type="file" id="nativeFolderPicker" webkitdirectory directory class="hidden" onchange="handleNativeFolderPick(event)">
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input type="text" id="customProjectPathInput" dir="ltr" placeholder="C:\CLAUDE PROJECTS\my-new-project" class="flex-1 px-3 py-2 rounded-lg border text-xs font-mono text-left" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          <button onclick="addCustomProjectPath()" class="px-4 py-2 rounded-lg text-white font-bold text-xs cursor-pointer shrink-0" style="background: var(--color-primary);">
+            חבר פרויקט
+          </button>
+        </div>
+        <div id="addProjectFeedback" class="hidden text-xs font-bold p-2 rounded-lg border" style="background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary);"></div>
+      </div>
+
+      <div class="text-xs flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
+        <span>טיפ: ניתן לדלג בין הפרויקטים גם באמצעות מקשי הספרות <code>1</code> עד <code>9</code> במקלדת.</span>
+        <button onclick="closeAddProjectModal()" class="px-4 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          סגור
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 5. JAVASCRIPT DATA ENGINE & TICKER ==================== -->
+  <!-- ==================== 5. ABOUT MODAL DRAWER ('?' Modal) ==================== -->
+  <div id="aboutModal" onclick="closeAboutModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+    <div class="orbit-card max-w-xl w-full p-6 space-y-4 shadow-2xl relative select-text text-right" onclick="event.stopPropagation()">
+      <button onclick="closeAboutModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+        ✕
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white text-xl shadow-md shrink-0" style="background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));">
+          🛰️
+        </div>
+        <div>
+          <h2 class="text-lg font-black" style="color: var(--color-text);">אודות Orbit Multi-Project Hub</h2>
+          <div class="text-xs font-semibold" style="color: var(--color-primary);">מרכז בקרה רב-פרויקטלי במבט חטוף · גרסה 2.2</div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl border text-sm leading-relaxed space-y-2" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+        <strong class="block font-bold">שליטה בכל הפרויקטים מחלון אחד ("מעוף הציפור"):</strong>
+        <p>
+          Orbit Dashboard מאפשר לך לעקוב במקביל אחרי מספר פרויקטים פעילים מתוך חלון אחד קבוע וללא גלילה. סרגל הפרויקטים האנכי בימין המסך מציג את כל הפרויקטים המחוברים ומתאים את גובה הכפתורים אוטומטית.
+        </p>
+        <p>
+          <strong>מנוע מיקוד חכם (Focus Beacon):</strong> כאשר פרויקט מקביל מסיים שלב, עובר פאזה או מגיש דו״ח ביצוע, הכפתור שלו בסרגל הימני יואר אוטומטית במסגרת זהובה כדי שתדע לעבור אליו בלחיצה אחת.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-xs">
+        <div class="p-2.5 rounded-xl border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[11px]" style="color: var(--color-text-muted);">מתאם פעיל:</span>
+          <strong id="modalAdapter" style="color: var(--color-primary);">מתאם שרגא</strong>
+        </div>
+        <div class="p-2.5 rounded-xl border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[11px]" style="color: var(--color-text-muted);">תדירות סריקה:</span>
+          <strong id="modalFrequency" style="color: var(--color-success);">כל 2 דקות</strong>
+        </div>
+        <div class="p-2.5 rounded-xl border" style="background: var(--color-bg); border-color: var(--color-border);">
+          <span class="block text-[11px]" style="color: var(--color-text-muted);">מצב אבטחה:</span>
+          <strong style="color: var(--color-secondary);">קריאה בלבד</strong>
+        </div>
+      </div>
+
+      <div class="text-xs flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
+        <span>מקשי קיצור: <code>1-9</code> למעבר בין פרויקטים · <code>T</code> למצב כהה/בהיר · <code>R</code> לרענון</span>
+        <button onclick="closeAboutModal()" class="px-4 py-1.5 rounded-xl text-white font-bold text-xs transition cursor-pointer" style="background: var(--color-primary);">
+          סגור
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. JAVASCRIPT MULTI-PROJECT HUB ENGINE ==================== -->
   <script>
-    // Global State Container
     let orbitState = window.ORBIT_DATA || null;
+    let orbitHubData = window.ORBIT_HUB || null;
+    let currentProjectHash = null;
     let selectedPhaseIndex = null;
     let lastUpdatedTimestamp = Date.now();
     let isDarkMode = false;
+    let isSidebarCollapsed = false;
+    let expandedSet = new Set();
+    let allExpanded = false;
 
-    // 1. Initial Launch
+    // Track acknowledged alerts per project hash in localStorage + memory
+    let acknowledgedAlerts = {};
+    try {
+      acknowledgedAlerts = JSON.parse(localStorage.getItem('orbit_ack_alerts') || '{}');
+    } catch {
+      acknowledgedAlerts = {};
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      // Check stored theme preference
       const storedTheme = localStorage.getItem('orbit_theme');
       if (storedTheme === 'dark') {
         enableDarkMode(true);
@@ -448,31 +621,406 @@
         enableDarkMode(false);
       }
 
+      if (orbitHubData && orbitHubData.projects) {
+        currentProjectHash = orbitHubData.lastSelectedHash || Object.keys(orbitHubData.projects)[0];
+        if (currentProjectHash && orbitHubData.projects[currentProjectHash]) {
+          orbitState = orbitHubData.projects[currentProjectHash];
+        }
+      }
+
       if (orbitState) {
+        currentProjectHash = orbitState.projectHash || currentProjectHash;
         initDashboard(orbitState);
+        renderProjectDock();
       } else {
         fetchOrbitState();
       }
 
-      // Live Ticker every second
       setInterval(updateRelativeTicker, 1000);
+      setInterval(fetchOrbitState, 4000);
 
-      // Soft-Sync Polling every 5 seconds
-      setInterval(fetchOrbitState, 5000);
-
-      // Keyboard shortcuts
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeAboutModal();
-        if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+        if (e.key === 'Escape') {
+          closeAboutModal();
+          closeAddProjectModal();
+        }
+        if (document.activeElement.tagName === 'INPUT') return;
+
+        if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey) {
           toggleTheme();
         }
-        if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+        if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
           manualRefresh();
+        }
+        // Number keys 1-9 to switch between projects quickly!
+        if (/^[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && orbitHubData && orbitHubData.projects) {
+          const idx = parseInt(e.key, 10) - 1;
+          const hashes = getSortedProjectHashes();
+          if (hashes[idx]) {
+            switchToProject(hashes[idx]);
+          }
         }
       });
     });
 
-    // Theme Toggle Controls
+    function getSortedProjectHashes() {
+      if (!orbitHubData || !orbitHubData.projects) return [];
+      return Object.keys(orbitHubData.projects).sort((a, b) => {
+        const pa = orbitHubData.projects[a];
+        const pb = orbitHubData.projects[b];
+        // Active projects before completed ones
+        const aDone = (pa.activePhaseIndex ?? 0) >= (pa.phases || []).length;
+        const bDone = (pb.activePhaseIndex ?? 0) >= (pb.phases || []).length;
+        if (aDone !== bDone) return aDone ? 1 : -1;
+        return (pa.projectName || '').localeCompare(pb.projectName || '');
+      });
+    }
+
+    function hasActiveFocusAlert(hash) {
+      if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return null;
+      const proj = orbitHubData.projects[hash];
+      const alert = proj.focusAlert;
+      if (!alert || !alert.unread) return null;
+      // Check if user already clicked and acknowledged this exact alert timestamp
+      const ackTime = acknowledgedAlerts[hash] || 0;
+      if (alert.detectedAt && ackTime >= alert.detectedAt) return null;
+      return alert;
+    }
+
+    function acknowledgeFocusAlert(hash) {
+      if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return;
+      const proj = orbitHubData.projects[hash];
+      if (proj.focusAlert) {
+        proj.focusAlert.unread = false;
+        acknowledgedAlerts[hash] = Date.now();
+        try {
+          localStorage.setItem('orbit_ack_alerts', JSON.stringify(acknowledgedAlerts));
+        } catch {}
+      }
+    }
+
+    // Switch between projects in the single window (0ms instant switch!)
+    function switchToProject(hash) {
+      if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return;
+      currentProjectHash = hash;
+      orbitState = orbitHubData.projects[hash];
+      selectedPhaseIndex = orbitState.activePhaseIndex ?? 0;
+      expandedSet.clear();
+      allExpanded = false;
+      updateToggleAllBtnText();
+
+      // Acknowledge any Focus Beacon alert on this project now that the user switched to it!
+      acknowledgeFocusAlert(hash);
+
+      initDashboard(orbitState);
+      renderProjectDock();
+    }
+
+    // Render Right Vertical Project Sidebar Dock (Adaptive Height X Number of Projects)
+    function renderProjectDock() {
+      const container = document.getElementById('projectDockList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const hashes = getSortedProjectHashes();
+      const countEl = document.getElementById('sidebarProjectsCount');
+      if (countEl) {
+        countEl.textContent = `${hashes.length} דשבורדים מחוברים`;
+      }
+
+      // Adaptive sizing based on number of projects so they fit without scrolling!
+      const isCompactDock = hashes.length >= 6;
+      const padClass = isCompactDock ? 'p-2' : 'p-2.5';
+
+      let firstFocusedHash = null;
+      let firstFocusedName = '';
+      let totalFocusedCount = 0;
+
+      hashes.forEach((hash, idx) => {
+        const proj = orbitHubData.projects[hash];
+        const isCurrent = (hash === currentProjectHash);
+        const focusAlert = (!isCurrent) ? hasActiveFocusAlert(hash) : null;
+
+        if (focusAlert) {
+          totalFocusedCount++;
+          if (!firstFocusedHash) {
+            firstFocusedHash = hash;
+            firstFocusedName = proj.projectName || 'פרויקט';
+          }
+        }
+
+        const btn = document.createElement('div');
+        btn.className = `project-dock-btn ${padClass} ${isCurrent ? 'active-project' : ''} ${focusAlert ? 'focus-beacon' : ''}`;
+        btn.onclick = () => switchToProject(hash);
+
+        const phases = proj.phases || [];
+        const activeIdx = proj.activePhaseIndex ?? 0;
+        const isCompleted = activeIdx >= phases.length && phases.length > 0;
+        const statusDotColor = focusAlert
+          ? '#f59e0b'
+          : (isCompleted ? 'var(--color-success)' : (isCurrent ? 'var(--color-primary)' : 'var(--color-text-muted)'));
+
+        const phaseSummaryText = isCompleted
+          ? '✓ הושלם במלואו'
+          : `שלב ${activeIdx} מתוך ${Math.max(1, phases.length - 1)}`;
+
+        const projPrimaryColor = proj.theme?.primary || 'var(--color-primary)';
+
+        if (isSidebarCollapsed) {
+          // Collapsed Icon-Only Mode
+          const initials = (proj.projectName || 'P').substring(0, 2).toUpperCase();
+          btn.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-1 relative">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-sm" style="background: ${projPrimaryColor};">
+                ${formatRtlSafe(initials)}
+              </div>
+              ${focusAlert ? `<span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>` : ''}
+            </div>
+          `;
+          btn.title = `${proj.projectName} (${phaseSummaryText})${focusAlert ? ' — ' + focusAlert.badgeText : ''}`;
+        } else {
+          // Expanded Full Card Mode
+          btn.innerHTML = `
+            <div class="flex items-center justify-between gap-1.5">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0 ${focusAlert ? 'animate-ping' : ''}" style="background-color: ${statusDotColor};"></span>
+                <span class="font-black text-xs sm:text-sm truncate" style="color: var(--color-text);">${formatRtlSafe(proj.projectName || 'פרויקט')}</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${idx + 1}</span>
+            </div>
+
+            <div class="flex items-center justify-between mt-1.5 text-[11px]">
+              <span class="font-bold truncate" style="color: var(--color-text-muted);">${phaseSummaryText}</span>
+              <span class="font-extrabold" style="color: ${projPrimaryColor};">${proj.macroProgressPercent ?? 0}%</span>
+            </div>
+
+            ${focusAlert ? `
+              <div class="mt-1.5 px-2 py-1 rounded-lg text-[11px] font-extrabold flex items-center justify-between" style="background: rgba(245, 158, 11, 0.2); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.4);">
+                <span>${formatRtlSafe(focusAlert.badgeText)}</span>
+                <span>👈</span>
+              </div>
+            ` : ''}
+          `;
+        }
+
+        container.appendChild(btn);
+      });
+
+      // Update Global Header Banner & Page Title if any background project has an active Focus Alert!
+      const globalAlertEl = document.getElementById('headerGlobalFocusAlert');
+      const globalAlertText = document.getElementById('headerGlobalFocusText');
+      if (totalFocusedCount > 0 && globalAlertEl && globalAlertText) {
+        globalAlertEl.classList.remove('hidden');
+        globalAlertEl.classList.add('flex');
+        globalAlertEl.dataset.targetHash = firstFocusedHash;
+        globalAlertText.textContent = `🔔 ${firstFocusedName}: שלב הושלם! לחץ למעבר`;
+        document.title = `🔔 (${totalFocusedCount}) Orbit — ${orbitState?.projectName || 'מרכז בקרה'}`;
+      } else {
+        if (globalAlertEl) {
+          globalAlertEl.classList.add('hidden');
+          globalAlertEl.classList.remove('flex');
+        }
+        document.title = `Orbit Dashboard — ${orbitState?.projectName || 'מרכז בקרה'}`;
+      }
+    }
+
+    function jumpToFocusedProject() {
+      const globalAlertEl = document.getElementById('headerGlobalFocusAlert');
+      const targetHash = globalAlertEl?.dataset?.targetHash;
+      if (targetHash) {
+        switchToProject(targetHash);
+      }
+    }
+
+    function toggleSidebarCollapse() {
+      isSidebarCollapsed = !isSidebarCollapsed;
+      const sidebar = document.getElementById('projectSidebar');
+      const btn = document.getElementById('btnCollapseSidebar');
+      const headerTitle = document.getElementById('sidebarHeaderTitle');
+      const textElements = document.querySelectorAll('.sidebar-text-only');
+
+      if (isSidebarCollapsed) {
+        sidebar.classList.remove('w-56');
+        sidebar.classList.add('w-16');
+        if (btn) btn.textContent = '❯';
+        if (headerTitle) headerTitle.classList.add('hidden');
+        textElements.forEach(el => el.classList.add('hidden'));
+      } else {
+        sidebar.classList.remove('w-16');
+        sidebar.classList.add('w-56');
+        if (btn) btn.textContent = '❮';
+        if (headerTitle) headerTitle.classList.remove('hidden');
+        textElements.forEach(el => el.classList.remove('hidden'));
+      }
+      renderProjectDock();
+    }
+
+    // Demo trigger so the user can test and see the Focus Beacon live at any time!
+    function triggerDemoFocusBeacon() {
+      if (!orbitHubData || !orbitHubData.projects) return;
+      const hashes = getSortedProjectHashes().filter(h => h !== currentProjectHash);
+      if (hashes.length === 0) return;
+
+      const targetHash = hashes[0];
+      const targetProj = orbitHubData.projects[targetHash];
+      targetProj.focusAlert = {
+        type: 'phase_advanced',
+        badgeText: '🔔 שלב הושלם! עבור לכאן',
+        reason: 'הסתיים שלב בפרויקט והוגש דו״ח ביצוע — ממתין לבדיקתך.',
+        detectedAt: Date.now() + 1000,
+        unread: true
+      };
+      renderProjectDock();
+    }
+
+    // Add Project Modal & Folder Selection
+    function openAddProjectModal() {
+      renderDiscoveredProjects();
+      const feedback = document.getElementById('addProjectFeedback');
+      if (feedback) feedback.classList.add('hidden');
+      document.getElementById('addProjectModal').classList.remove('hidden');
+    }
+
+    function closeAddProjectModal() {
+      document.getElementById('addProjectModal').classList.add('hidden');
+    }
+
+    function renderDiscoveredProjects() {
+      const listEl = document.getElementById('discoveredProjectsList');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+
+      const candidates = orbitHubData?.candidateProjects || [];
+      const registeredHashes = new Set(Object.keys(orbitHubData?.projects || {}));
+
+      if (candidates.length === 0) {
+        listEl.innerHTML = '<div class="text-xs p-3 text-center" style="color: var(--color-text-muted);">לא נמצאו תיקיות נוספות. השתמש בתיבת הבחירה למטה.</div>';
+        return;
+      }
+
+      candidates.forEach(cand => {
+        const isRegistered = registeredHashes.has(cand.projectHash);
+        const item = document.createElement('div');
+        item.className = 'p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition cursor-pointer';
+        item.style.backgroundColor = isRegistered ? 'var(--color-primary-soft)' : 'var(--color-bg)';
+        item.style.borderColor = isRegistered ? 'var(--color-primary)' : 'var(--color-border)';
+
+        item.onclick = () => {
+          if (isRegistered) {
+            switchToProject(cand.projectHash);
+            closeAddProjectModal();
+          } else {
+            document.getElementById('customProjectPathInput').value = cand.projectPath;
+            addCustomProjectPath(cand.folderName, cand.projectPath);
+          }
+        };
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-base">${isRegistered ? '🛰️' : '📁'}</span>
+            <div class="min-w-0 text-right">
+              <div class="font-black text-xs sm:text-sm truncate" style="color: var(--color-text);">${formatRtlSafe(cand.folderName)}</div>
+              <div class="text-[10px] font-mono truncate" dir="ltr" style="color: var(--color-text-muted);">${formatRtlSafe(cand.projectPath)}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold border" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${formatRtlSafe(cand.typeBadge)}</span>
+            <span class="px-2.5 py-1 rounded-lg font-extrabold text-[11px]" style="background: ${isRegistered ? 'var(--color-surface)' : 'var(--color-primary)'}; color: ${isRegistered ? 'var(--color-primary)' : '#fff'};">
+              ${isRegistered ? 'פעיל בסרגל ✓' : '+ הוסף לדשבורד'}
+            </span>
+          </div>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    function handleNativeFolderPick(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const firstFile = files[0];
+      const relPath = firstFile.webkitRelativePath || '';
+      const folderName = relPath.split('/')[0] || firstFile.name;
+
+      // Check if this folder matches one of our known candidate projects or existing projects
+      const candidates = orbitHubData?.candidateProjects || [];
+      const matched = candidates.find(c => c.folderName.toLowerCase() === folderName.toLowerCase());
+
+      const inputEl = document.getElementById('customProjectPathInput');
+      if (matched) {
+        inputEl.value = matched.projectPath;
+        addCustomProjectPath(matched.folderName, matched.projectPath);
+      } else {
+        const guessedPath = `C:\\CLAUDE PROJECTS\\${folderName}`;
+        inputEl.value = guessedPath;
+        addCustomProjectPath(folderName, guessedPath);
+      }
+    }
+
+    function addCustomProjectPath(explicitName, explicitPath) {
+      const inputEl = document.getElementById('customProjectPathInput');
+      const rawPath = explicitPath || (inputEl ? inputEl.value.trim() : '');
+      if (!rawPath) return;
+
+      // Check if already in orbitHubData.projects by path or name
+      if (orbitHubData && orbitHubData.projects) {
+        for (const [h, p] of Object.entries(orbitHubData.projects)) {
+          if (
+            (p.projectPath && p.projectPath.toLowerCase() === rawPath.toLowerCase()) ||
+            (explicitName && p.projectName && p.projectName.toLowerCase() === explicitName.toLowerCase())
+          ) {
+            switchToProject(h);
+            closeAddProjectModal();
+            return;
+          }
+        }
+      }
+
+      // Create an instant live entry in the Hub so the user can view it immediately
+      const folderName = explicitName || rawPath.split(/[\\/]/).filter(Boolean).pop() || 'New Project';
+      const tempHash = 'custom_' + Math.random().toString(36).substring(2, 8);
+
+      const newProjState = {
+        projectName: folderName,
+        projectDescription: `פרויקט מחובר מהנתיב: ${rawPath}`,
+        adapterName: 'מתאם שרגא / פרויקט מותאם',
+        activePhaseIndex: 0,
+        macroProgressPercent: 0,
+        totalTests: 0,
+        isGenericGit: false,
+        pollFrequency: 'כל 2 דקות',
+        projectPath: rawPath,
+        projectHash: tempHash,
+        timestamp: Date.now(),
+        phases: [
+          {
+            phaseNum: 0,
+            title: 'שלב 0: תשתית ואפיון ראשוני',
+            subtitle: 'שלב 0 · מחובר לדשבורד',
+            status: 'active',
+            stageLabel: 'שלב 1: מחובר למרכז הבקרה',
+            description: `התיקייה ${folderName} חוברה בהצלחה למרכז הבקרה. בסריקת הרקע הבאה של Orbit כל קובצי התוכנית והשלבים יסונכרנו אוטומטית.`,
+            deliverables: [
+              { status: 'done', title: `חיבור תיקיית הפרויקט (${folderName}) למרכז הבקרה`, desc: `נתיב: ${rawPath}` },
+              { status: 'active', title: 'סנכרון אוטומטי מול סורק Orbit ברקע', desc: 'קריאת קובצי שרגא / Plan.md בסבב הסריקה הקרוב.' }
+            ],
+            acCount: 1,
+            riskGateCount: 0,
+            testsCount: '0',
+            gateScore: 'מחובר ✓',
+            verdict: 'מחובר לסורק'
+          }
+        ]
+      };
+
+      if (!orbitHubData) {
+        orbitHubData = { projects: {}, candidateProjects: [] };
+      }
+      orbitHubData.projects[tempHash] = newProjState;
+      switchToProject(tempHash);
+      closeAddProjectModal();
+    }
+
     function toggleTheme() {
       enableDarkMode(!isDarkMode);
       localStorage.setItem('orbit_theme', isDarkMode ? 'dark' : 'light');
@@ -491,8 +1039,27 @@
       }
     }
 
-    // 2. Fetch State from local json
     async function fetchOrbitState() {
+      try {
+        const hubRes = await fetch('./orbit-hub.json?t=' + Date.now());
+        if (hubRes.ok) {
+          const hubData = await hubRes.json();
+          if (JSON.stringify(hubData) !== JSON.stringify(orbitHubData)) {
+            orbitHubData = hubData;
+            if (currentProjectHash && orbitHubData.projects && orbitHubData.projects[currentProjectHash]) {
+              orbitState = orbitHubData.projects[currentProjectHash];
+            } else if (orbitHubData.lastSelectedHash && orbitHubData.projects?.[orbitHubData.lastSelectedHash]) {
+              currentProjectHash = orbitHubData.lastSelectedHash;
+              orbitState = orbitHubData.projects[currentProjectHash];
+            }
+            lastUpdatedTimestamp = orbitState?.timestamp || Date.now();
+            initDashboard(orbitState);
+            renderProjectDock();
+          }
+          return;
+        }
+      } catch {}
+
       try {
         const res = await fetch('./orbit-state.json?t=' + Date.now());
         if (res.ok) {
@@ -503,22 +1070,17 @@
             initDashboard(orbitState);
           }
         }
-      } catch (err) {
-        // Silently tolerate if file not available yet
-      }
+      } catch {}
     }
 
-    // 3. Initialize & Populate Dashboard
     function initDashboard(state) {
       if (!state) return;
 
-      // Apply Dynamic Theme
       if (state.theme) {
         const root = document.documentElement;
         if (state.theme.primary) root.style.setProperty('--color-primary', state.theme.primary);
         if (state.theme.primaryHover) root.style.setProperty('--color-primary-hover', state.theme.primaryHover);
-        
-        // If user hasn't explicitly overridden theme in localStorage, use project's preferred lightness
+
         if (!localStorage.getItem('orbit_theme')) {
           if (state.theme.isLight !== undefined) {
             enableDarkMode(!state.theme.isLight);
@@ -537,46 +1099,48 @@
         }
       }
 
-      // Update Header
       document.getElementById('headerProjectTitle').textContent = state.projectName || 'פרויקט';
-      document.getElementById('headerAdapterBadge').textContent = state.adapterName || 'מתאם שרגא';
-      
+      document.getElementById('headerAdapterBadge').textContent = state.adapterName === 'Shraga First-Class Harness' ? 'מתאם שרגא' : (state.adapterName || 'מתאם שרגא');
+
       if (state.projectDescription) {
         document.getElementById('headerSubtitle').textContent = state.projectDescription;
       }
 
       const activeIdx = state.activePhaseIndex ?? 0;
-      if (selectedPhaseIndex === null) {
-        selectedPhaseIndex = activeIdx;
+      const phases = state.phases || [];
+      if (selectedPhaseIndex === null || selectedPhaseIndex >= phases.length) {
+        selectedPhaseIndex = Math.min(activeIdx, Math.max(0, phases.length - 1));
       }
 
-      document.getElementById('headerPhasePill').textContent = `שלב ${activeIdx} פעיל`;
-      document.getElementById('activePhaseResetNum').textContent = activeIdx;
+      const isCompletedAll = activeIdx >= phases.length && phases.length > 0;
+      document.getElementById('headerPhasePill').textContent = isCompletedAll ? 'הפרויקט הושלם ✓' : `שלב ${activeIdx} פעיל`;
+      document.getElementById('activePhaseResetNum').textContent = Math.min(activeIdx, Math.max(0, phases.length - 1));
 
-      // Toggle Transparency Banner if Generic Git
       const isGeneric = state.isGenericGit ?? false;
       document.getElementById('transparencyBanner').classList.toggle('hidden', !isGeneric);
 
-      // Update Modal Info
-      document.getElementById('modalAdapter').textContent = state.adapterName || 'מתאם מזוהה';
+      document.getElementById('modalAdapter').textContent = state.adapterName || 'מתאם שרגא';
       document.getElementById('modalFrequency').textContent = state.pollFrequency || 'כל 2 דקות';
 
-      // Render Roadmap Stepper
       renderRoadmap(state, selectedPhaseIndex);
-
-      // Render Selected Phase View
       renderSelectedPhase(state, selectedPhaseIndex);
     }
 
-    // 4. Render Roadmap Stepper
+    function formatRtlSafe(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
     function renderRoadmap(state, currentViewIdx) {
       const container = document.getElementById('roadmapContainer');
       container.innerHTML = '';
 
       const phases = state.phases || [];
-      const activeIdx = state.activePhaseIndex ?? 0;
+      const activeIdx = Math.min(state.activePhaseIndex ?? 0, Math.max(0, phases.length - 1));
 
-      // Handle history banner
       const isHistory = currentViewIdx !== activeIdx;
       const historyBanner = document.getElementById('historyNoticeBanner');
       historyBanner.classList.toggle('hidden', !isHistory);
@@ -595,8 +1159,8 @@
 
         if (phase.status === 'completed' || phase.status === 'done') {
           statusClass = 'done';
-          statusPill = '<span class="font-bold" style="color: var(--color-success);">✓ אושר</span>';
-        } else if (idx === activeIdx) {
+          statusPill = '<span class="font-bold" style="color: var(--color-success);">✓ הושלם</span>';
+        } else if (idx === (state.activePhaseIndex ?? 0)) {
           statusClass = 'active';
           statusPill = '<span class="font-extrabold animate-pulse" style="color: var(--color-primary);">⚡ פעיל</span>';
         } else {
@@ -606,21 +1170,25 @@
         if (statusClass) step.classList.add(statusClass);
         if (idx === currentViewIdx) step.classList.add('selected-history');
 
+        const cleanStepTitle = (phase.title || `שלב ${idx}`).replace(/^שלב\s*\d+[:\s\-]*/, '');
+
         step.innerHTML = `
-          <div class="flex justify-between items-center text-[10px] mb-0.5">
+          <div class="flex justify-between items-center text-[11px] mb-0.5" dir="rtl">
             <span class="font-bold" style="color: var(--color-text-muted);">שלב ${idx}</span>
             <span>${statusPill}</span>
           </div>
-          <div class="text-xs font-black truncate" style="color: var(--color-text);">${phase.title || ('שלב ' + idx)}</div>
-          <div class="text-[10px] truncate mt-0.5" style="color: var(--color-text-muted);">${phase.subtitle || ''}</div>
+          <div class="text-xs sm:text-sm font-black truncate text-right" dir="rtl" style="color: var(--color-text);">${formatRtlSafe(cleanStepTitle)}</div>
+          <div class="text-[10px] truncate mt-0.5 text-right" dir="rtl" style="color: var(--color-text-muted);">${formatRtlSafe(phase.subtitle || '')}</div>
         `;
         container.appendChild(step);
       });
     }
 
-    // 5. Select Phase (Time-Machine)
     function selectPhase(idx) {
       selectedPhaseIndex = idx;
+      expandedSet.clear();
+      allExpanded = false;
+      updateToggleAllBtnText();
       if (orbitState) {
         renderRoadmap(orbitState, selectedPhaseIndex);
         renderSelectedPhase(orbitState, selectedPhaseIndex);
@@ -629,53 +1197,45 @@
 
     function resetToActivePhase() {
       if (orbitState) {
-        selectedPhaseIndex = orbitState.activePhaseIndex ?? 0;
+        const phases = orbitState.phases || [];
+        selectedPhaseIndex = Math.min(orbitState.activePhaseIndex ?? 0, Math.max(0, phases.length - 1));
         selectPhase(selectedPhaseIndex);
       }
     }
 
-    // 6. Render Detailed Phase Content
     function renderSelectedPhase(state, idx) {
       const phases = state.phases || [];
       const phase = phases[idx] || {};
       const activeIdx = state.activePhaseIndex ?? 0;
       const isActive = (idx === activeIdx);
 
-      // Col 1: Context & Macro
-      document.getElementById('col1StageBadge').textContent = phase.stageLabel || (isActive ? 'שלב 4: סשן בנייה פעיל (Build)' : (phase.status === 'done' ? 'הושלם ואושר ✓' : 'מתוכנן להמשך ○'));
-      document.getElementById('col1StatusIndicator').textContent = isActive ? '⚡ פעיל כעת' : (phase.status === 'done' ? '✓ הושלם' : '○ מתוכנן');
+      document.getElementById('col1StageBadge').textContent = phase.stageLabel || (isActive ? 'שלב 4: סשן בנייה פעיל' : (phase.status === 'done' || phase.status === 'completed' ? 'הושלם ואושר ✓' : 'מתוכנן להמשך ○'));
+      document.getElementById('col1StatusIndicator').textContent = isActive ? '⚡ פעיל כעת' : (phase.status === 'done' || phase.status === 'completed' ? '✓ הושלם' : '○ מתוכנן');
 
       const pTitleText = phase.title || 'ללא כותרת';
       document.getElementById('col1PhaseTitle').textContent = pTitleText.startsWith('שלב') ? pTitleText : `שלב ${idx}: ${pTitleText}`;
-      document.getElementById('col1PhaseDesc').textContent = phase.description || 'אין תיאור זמין עבור פאזה זו.';
+      document.getElementById('col1PhaseDesc').textContent = phase.description || 'אין תיאור זמין עבור שלב זה.';
 
-      // Macro Progress
       const macroPercent = state.macroProgressPercent ?? Math.round(((activeIdx) / Math.max(1, phases.length)) * 100);
       document.getElementById('col1MacroProgressText').textContent = `${macroPercent}%`;
       document.getElementById('col1MacroProgressBar').style.width = `${macroPercent}%`;
 
-      // Metrics
       document.getElementById('metricTestsVal').textContent = phase.testsCount ?? state.totalTests ?? '0';
       document.getElementById('metricTestsLbl').textContent = phase.testsLabel || 'בדיקות יחידה שעברו';
-      document.getElementById('metricGateVal').textContent = phase.gateScore || (phase.status === 'done' ? '✓ 100%' : '--');
+      document.getElementById('metricGateVal').textContent = phase.gateScore || (phase.status === 'done' || phase.status === 'completed' ? '✓ אושר' : '--');
       document.getElementById('metricGateLbl').textContent = phase.gateLabel || 'שער איכות ובקרת שרגא';
 
-      // Col 2: Deliverables & Honest State
-      renderDeliverables(phase.deliverables || []);
-      
-      // Verdict
-      const verdict = phase.verdict || (phase.status === 'done' ? 'אושר מלא (Approved)' : 'ממתין לסיום הבנייה');
-      document.getElementById('verdictLabel').textContent = verdict;
-      const badge = document.getElementById('verdictBadge');
-      badge.textContent = verdict;
+      renderDeliverables(phase.deliverables || [], phase);
 
-      // Col 3: Next Step & Guidance
+      const verdict = phase.verdict || (phase.status === 'done' || phase.status === 'completed' ? 'אושר מלא ✓' : 'ממתין לסיום הבנייה');
+      document.getElementById('verdictLabel').textContent = verdict;
+      document.getElementById('verdictBadge').textContent = phase.status === 'completed' || phase.status === 'done' ? 'אושר ✓' : (isActive ? 'בבנייה ⚡' : 'מתוכנן');
+
       document.getElementById('col3NextActionTitle').textContent = phase.nextActionHeader || 'מה עושים עכשיו?';
-      document.getElementById('col3NextHeader').textContent = phase.nextActionSub || (isActive ? 'השלב המיידי לביצוע מול הסוכן:' : 'סטטוס פאזה זו:');
-      document.getElementById('col3NextBody').innerHTML = phase.nextActionBody || (isActive ? 'המשך בביצוע המשימות הפעילות בסבב הנוכחי.' : 'פאזה זו הושלמה וממתינה לשלבים הבאים.');
+      document.getElementById('col3NextHeader').textContent = phase.nextActionSub || (isActive ? 'השלב המיידי לביצוע מול הסוכן:' : 'סטטוס שלב זה:');
+      document.getElementById('col3NextBody').textContent = (phase.nextActionBody || (isActive ? 'המשך בביצוע המשימות הפעילות בסבב הנוכחי.' : 'שלב זה הושלם או ממתין לתורו.')).replace(/<\/?code>/g, '');
       document.getElementById('col3CycleStage').textContent = phase.stageLabel || (isActive ? 'סשן בנייה פעיל' : 'בארכיון');
 
-      // Suggested Prompt (if provided)
       const promptBox = document.getElementById('col3PromptContainer');
       if (phase.suggestedPrompt) {
         promptBox.classList.remove('hidden');
@@ -685,55 +1245,124 @@
       }
     }
 
-    // 7. Render Deliverables (Honest State Machine)
-    function renderDeliverables(items) {
+    function renderDeliverables(items, phase = {}) {
       const container = document.getElementById('col2DeliverablesList');
       container.innerHTML = '';
-      document.getElementById('col2TotalCountBadge').textContent = `${items.length} משימות`;
+
+      const doneCount = items.filter(i => i.status === 'done' || i.status === 'completed').length;
+      document.getElementById('col2TotalCountBadge').textContent = doneCount > 0
+        ? `${doneCount} מתוך ${items.length} הוקמו`
+        : `${items.length} רכיבי ליבה`;
+
+      const pillsEl = document.getElementById('col2AcRiskPills');
+      if (pillsEl) {
+        const pills = [];
+        if (phase.acCount > 0) {
+          pills.push(`<span class="px-2 py-0.5 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);" title="תנאי קבלה לאימות בסיום הפאזה">🎯 ${phase.acCount} תנאי קבלה</span>`);
+        }
+        if (phase.riskGateCount > 0) {
+          pills.push(`<span class="px-2 py-0.5 rounded-lg border" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);" title="שערי סיכון ואבטחה">🛡️ ${phase.riskGateCount} שערי סיכון</span>`);
+        }
+        pillsEl.innerHTML = pills.join('');
+      }
 
       if (items.length === 0) {
-        container.innerHTML = '<div class="text-xs p-3 text-center" style="color: var(--color-text-muted);">אין משימות מוגדרות לפאזה זו.</div>';
+        container.innerHTML = '<div class="text-sm p-4 text-center" style="color: var(--color-text-muted);">אין משימות מוגדרות לשלב זה.</div>';
         return;
       }
 
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'p-2.5 rounded-xl border flex items-start gap-2.5 text-xs transition-all';
+      items.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'deliverable-row';
+        const isExpanded = expandedSet.has(index);
 
         let icon = '○';
-        let itemBg = 'var(--color-bg)';
-        let itemBorder = 'var(--color-border)';
-        let itemColor = 'var(--color-text-muted)';
+        let statusPillHtml = '<span class="text-[11px] font-bold px-2 py-0.5 rounded-md border shrink-0" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">מתוכנן</span>';
+        let rowBg = 'var(--color-bg)';
+        let rowBorder = 'var(--color-border)';
         let titleColor = 'var(--color-text)';
 
         if (item.status === 'done' || item.status === 'completed') {
           icon = '✓';
-          itemBg = 'rgba(22, 163, 74, 0.08)';
-          itemBorder = 'rgba(22, 163, 74, 0.3)';
-          itemColor = 'var(--color-success)';
+          rowBg = 'rgba(22, 163, 74, 0.07)';
+          rowBorder = 'rgba(22, 163, 74, 0.35)';
           titleColor = 'var(--color-success)';
+          statusPillHtml = '<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-md border shrink-0" style="background: rgba(22, 163, 74, 0.14); border-color: rgba(22, 163, 74, 0.4); color: var(--color-success);">✓ קיים בקוד</span>';
         } else if (item.status === 'active' || item.status === 'in_progress') {
           icon = '⚡';
-          itemBg = 'var(--color-primary-soft)';
-          itemBorder = 'var(--color-primary)';
-          itemColor = 'var(--color-primary)';
-          titleColor = 'var(--color-primary)';
+          rowBg = 'var(--color-primary-soft)';
+          rowBorder = 'var(--color-primary)';
+          titleColor = 'var(--color-text)';
+          statusPillHtml = '<span class="text-[11px] font-bold px-2 py-0.5 rounded-md border shrink-0" style="background: var(--color-surface); border-color: var(--color-primary); color: var(--color-primary);">בבנייה</span>';
         }
 
-        div.style.backgroundColor = itemBg;
-        div.style.borderColor = itemBorder;
-        div.innerHTML = `
-          <span class="font-black text-sm shrink-0 mt-0.5 ${item.status === 'active' ? 'animate-pulse' : ''}" style="color: ${itemColor};">${icon}</span>
-          <div class="flex-1 min-w-0">
-            <strong class="block truncate" style="color: ${titleColor};">${item.title || ''}</strong>
-            <div class="text-[11px] leading-snug mt-0.5" style="color: var(--color-text-muted);">${item.desc || ''}</div>
+        row.style.backgroundColor = rowBg;
+        row.style.borderColor = rowBorder;
+
+        const hasDesc = Boolean(item.desc && item.desc.trim());
+        row.onclick = () => {
+          if (!hasDesc) return;
+          if (expandedSet.has(index)) {
+            expandedSet.delete(index);
+          } else {
+            expandedSet.add(index);
+          }
+          renderDeliverables(items, phase);
+        };
+
+        row.innerHTML = `
+          <div class="flex items-center justify-between gap-2" dir="rtl">
+            <div class="flex items-center gap-2 min-w-0 flex-1 text-right">
+              <span class="font-black text-sm shrink-0" style="color: ${item.status === 'done' ? 'var(--color-success)' : 'var(--color-primary)'};">${icon}</span>
+              <span class="text-xs sm:text-sm font-extrabold truncate text-right" style="color: ${titleColor};">${formatRtlSafe(item.title || '')}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              ${statusPillHtml}
+              ${hasDesc ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded border transition" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${isExpanded ? 'סגור ▴' : 'הרחב ▾'}</span>` : ''}
+            </div>
           </div>
+          ${hasDesc && isExpanded ? `
+            <div class="mt-2 pt-2 border-t text-xs leading-relaxed text-right font-medium" dir="rtl" style="border-color: var(--color-border); color: var(--color-text-muted);">
+              ${formatRtlSafe(item.desc)}
+            </div>
+          ` : ''}
         `;
-        container.appendChild(div);
+
+        container.appendChild(row);
       });
     }
 
-    // 8. Live Relative Ticker Clock
+    function toggleAllDeliverables() {
+      if (!orbitState) return;
+      const phases = orbitState.phases || [];
+      const phase = phases[selectedPhaseIndex ?? 0] || {};
+      const items = phase.deliverables || [];
+
+      allExpanded = !allExpanded;
+      expandedSet.clear();
+      if (allExpanded) {
+        items.forEach((_, idx) => expandedSet.add(idx));
+      }
+      updateToggleAllBtnText();
+      renderDeliverables(items, phase);
+    }
+
+    function updateToggleAllBtnText() {
+      const btn = document.getElementById('btnToggleAllDetails');
+      if (btn) {
+        btn.textContent = allExpanded ? 'כווץ הכל ▴' : 'הרחב הכל ▾';
+      }
+    }
+
+    function togglePromptDrawer() {
+      const drawer = document.getElementById('col3PromptDrawer');
+      const arrow = document.getElementById('promptToggleArrow');
+      if (drawer) {
+        const isHidden = drawer.classList.toggle('hidden');
+        if (arrow) arrow.textContent = isHidden ? '▾' : '▴';
+      }
+    }
+
     function updateRelativeTicker() {
       const now = new Date();
       document.getElementById('tickerClock').textContent = now.toTimeString().split(' ')[0];
@@ -749,7 +1378,6 @@
       document.getElementById('tickerRelative').textContent = relText;
     }
 
-    // 9. Manual Refresh Trigger
     async function manualRefresh() {
       const icon = document.getElementById('refreshIcon');
       icon.classList.add('inline-block', 'animate-spin');
@@ -759,12 +1387,10 @@
       }, 600);
     }
 
-    // 10. Open in Standalone Browser
     function openExternal() {
       window.open(window.location.href, '_blank');
     }
 
-    // 11. Modal Controls
     function openAboutModal() {
       document.getElementById('aboutModal').classList.remove('hidden');
     }
@@ -772,7 +1398,6 @@
       document.getElementById('aboutModal').classList.add('hidden');
     }
 
-    // 12. Copy Prompt
     function copyPromptText() {
       const code = document.getElementById('col3PromptCode').textContent;
       navigator.clipboard.writeText(code).then(() => {

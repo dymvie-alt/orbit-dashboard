@@ -1,7 +1,7 @@
 /**
- * Orbit Dashboard - Plan / Milestone Adapter
+ * Orbit Dashboard - Plan / Milestone Adapter (v2.0)
  * Read-Only parser for standalone Plan.md, ROADMAP.md, tasks.md
- * Integrated with HebrewNormalizer for natural Hebrew (RTL) presentation with original LTR terms.
+ * Integrated with HebrewNormalizer v2.0 for RTL-first Hebrew presentation with original LTR terms.
  */
 
 import fs from 'fs';
@@ -31,8 +31,11 @@ export class PlanAdapter {
       throw new Error('No plan file found');
     }
 
-    const planContent = fs.readFileSync(planFile, 'utf-8');
+    let planContent = fs.readFileSync(planFile, 'utf-8');
     let projectName = path.basename(projectPath);
+
+    // Strip "## Change Log" at the bottom so it never leaks
+    planContent = planContent.replace(/\n##+\s*Change\s*Log[\s\S]*$/i, '');
 
     // Extract Title if exists
     const h1Match = planContent.match(/^#\s+(.+)$/m);
@@ -56,44 +59,84 @@ export class PlanAdapter {
 
       const pTitle = HebrewNormalizer.normalizePhaseTitle(rawTitle, pNum);
 
-      const deliverables = [];
-      const taskRegex = /[-*]\s*(?:\[([ xX])\])?\s*([^\n]+)/g;
-      let taskMatch;
+      const lines = pBody.split('\n');
+      let currentSection = 'general';
+      let rawObjectives = '';
+      const rawFeatures = [];
+      let acCount = 0;
+      let riskGateCount = 0;
 
-      while ((taskMatch = taskRegex.exec(pBody)) !== null) {
-        const isChecked = taskMatch[1] && taskMatch[1].toLowerCase() === 'x';
-        const taskText = taskMatch[2].trim();
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('|') || line.startsWith('--|')) continue;
 
-        let tTitle = taskText;
-        let tDesc = '';
-        if (taskText.includes(':')) {
-          const parts = taskText.split(':');
-          tTitle = parts[0].replace(/\*\*/g, '').trim();
-          tDesc = parts.slice(1).join(':').replace(/\*\*/g, '').trim();
+        if (/^(?:Objectives|יעדי הפאזה|מטרה)\s*:/i.test(line)) {
+          currentSection = 'objectives';
+          const after = line.replace(/^(?:Objectives|יעדי הפאזה|מטרה)\s*:\s*/i, '').trim();
+          if (after) rawObjectives = after;
+          continue;
+        }
+        if (/^(?:Features|תכולה|פיצ׳רים|משימות)\s*:/i.test(line)) {
+          currentSection = 'features';
+          continue;
+        }
+        if (/^(?:Acceptance\s*criteria|תנאי\s*קבלה)\s*:/i.test(line)) {
+          currentSection = 'ac';
+          continue;
+        }
+        if (/^(?:Risk\s*gate|שער\s*סיכונים|סיכונים)\s*:/i.test(line)) {
+          currentSection = 'risk';
+          continue;
+        }
+        if (/^(?:Inputs|Outputs|Validation|Tests)\s*:/i.test(line)) {
+          currentSection = 'meta';
+          continue;
         }
 
-        deliverables.push({
-          status: isChecked ? 'done' : 'planned',
-          title: tTitle,
-          desc: tDesc
-        });
+        const bulletMatch = line.match(/^[-*]\s*(?:\[([ xX])\])?\s*(.+)$/);
+        if (bulletMatch) {
+          const isChecked = bulletMatch[1] && bulletMatch[1].toLowerCase() === 'x';
+          const bulletText = bulletMatch[2].trim();
+
+          if (currentSection === 'ac' || /^AC-\d+/i.test(bulletText)) {
+            acCount++;
+          } else if (currentSection === 'risk' || /^R-\d+/i.test(bulletText)) {
+            riskGateCount++;
+          } else if (currentSection === 'features' || currentSection === 'general') {
+            rawFeatures.push({ text: bulletText, isChecked });
+          }
+        }
       }
 
-      const rawDesc = pBody.split('\n').find(line => {
-        const l = line.trim();
-        return l.length > 10 && !l.startsWith('-') && !l.startsWith('*') && !l.startsWith('#') && !l.startsWith('|');
-      }) || `תוכנית עבודה עבור שלב ${pNum}.`;
+      const deliverables = rawFeatures.map(feat => {
+        const humanized = HebrewNormalizer.humanizeFeatureItem(feat.text);
+        return {
+          status: feat.isChecked ? 'done' : 'planned',
+          title: humanized.title,
+          desc: humanized.desc,
+          fileHints: humanized.fileHints
+        };
+      });
+
+      if (!rawObjectives) {
+        rawObjectives = pBody.split('\n').find(line => {
+          const l = line.trim();
+          return l.length > 10 && !l.startsWith('-') && !l.startsWith('*') && !l.startsWith('#') && !l.startsWith('|');
+        }) || `תוכנית עבודה עבור שלב ${pNum}.`;
+      }
 
       phases.push({
         phaseNum: pNum,
         title: pTitle,
         rawTitle,
-        subtitle: `שלב ${pNum} · ${deliverables.length} משימות`,
+        subtitle: `שלב ${pNum} · ${deliverables.length} רכיבי ליבה`,
         status: 'planned',
-        description: HebrewNormalizer.cleanDescription(rawDesc),
+        description: HebrewNormalizer.cleanDescription(rawObjectives),
         deliverables: deliverables.length > 0 ? deliverables : [
           { status: 'planned', title: pTitle, desc: 'משימת פאזה ראשית' }
-        ]
+        ],
+        acCount,
+        riskGateCount
       });
     }
 
@@ -119,9 +162,12 @@ export class PlanAdapter {
         p.status = 'active';
         p.stageLabel = 'ספרינט פעיל כעת ⚡';
         p.verdict = 'בביצוע פעיל';
-        p.gateScore = 'בתהליך';
+        p.gateScore = p.acCount > 0 ? `${p.acCount} תנאי קבלה` : 'בתהליך';
         p.deliverables.forEach(d => {
-          if (d.status !== 'done') d.status = 'active';
+          if (d.status !== 'done') {
+            const exists = HebrewNormalizer.verifyFilesExist(projectPath, d.fileHints);
+            d.status = exists ? 'done' : 'active';
+          }
         });
       } else {
         p.status = 'planned';
