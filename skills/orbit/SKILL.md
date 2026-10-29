@@ -19,7 +19,7 @@ Orbit Dashboard is your intelligent development companion for Google Antigravity
 ### Phase 1: Onboarding Dialogue (When activated without explicit parameters)
 1. **Target Project Ingestion:**
    If the target directory is not explicitly stated in the user's prompt, invoke `ask_question`:
-   - **Question 1:** "איזה פרויקט תרצה ש-Orbit ילווה כעת?"
+   - **Question 1:** "איזה פרויקט נלווה כעת ב-Orbit?"
      - Options:
        - `(Recommended) תיקיית סביבת העבודה הנוכחית (<current-workspace>)`
        - `נתיב אחר במחשב`
@@ -40,13 +40,13 @@ Orbit Dashboard is your intelligent development companion for Google Antigravity
    - Report the detected adapter (`Shraga First-Class Harness`, `Plan.md Adapter`, or `Generic Git`).
    - Display the Active Phase, current stage, and test metrics.
    - Provide the direct clickable link to open the standalone zero-scroll Multi-Project Hub in an external browser for second-monitor workflows:
-     `[פתח את Orbit Multi-Project Hub בדפדפן](file:///<masterHubHtmlPath>)`
+     `[פתיחת Orbit Multi-Project Hub בדפדפן](file:///<masterHubHtmlPath>)`
    - Also copy or save the artifact into the conversation artifact space if inline embed is preferred.
 
 4. **Background Daemon Scheduling:**
    If automatic polling was requested (e.g. every 2 minutes), schedule a background recurring job via the `schedule` tool:
    - For 2 minutes: CronExpression: `*/2 * * * *`
-   - Prompt: `"Orbit Daemon: בצע סריקת עדכון שקטה לפרויקט <target-path> ורענן את orbit-state.json"`
+   - Prompt: `"Orbit Daemon: ביצוע סריקת עדכון שקטה לפרויקט <target-path> ורענון orbit-state.json"`
    - Note: The background task silently updates the JSON and HTML file in isolated storage, allowing the browser window to soft-sync without interrupting the user.
 
 ---

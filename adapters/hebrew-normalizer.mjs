@@ -83,13 +83,13 @@ export class HebrewNormalizer {
    * Normalizes verdicts (Approved, Approved with conditions, Rejected)
    */
   static normalizeVerdict(verdictStr) {
-    if (!verdictStr) return 'ממתין להשלמת בנייה';
+    if (!verdictStr) return 'בהמתנה להשלמת הבנייה';
 
     const v = verdictStr.toLowerCase();
     if (v.includes('approved with conditions')) return 'אושר עם תנאים';
     if (v.includes('approved')) return 'אושר מלא ✓';
     if (v.includes('reject')) return 'נדחה לתיקונים';
-    if (v.includes('pending')) return 'ממתין להשלמת בנייה';
+    if (v.includes('pending')) return 'בהמתנה להשלמת הבנייה';
 
     return verdictStr;
   }

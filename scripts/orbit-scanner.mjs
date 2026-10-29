@@ -144,7 +144,7 @@ export function detectMilestoneTransition(prevSig, currSig) {
     return {
       type: 'review_ready',
       badgeText: '✨ סקירה הושלמה!',
-      reason: `סקירת הארכיטקטורה לשלב ${currSig.activePhaseIndex} הסתיימה (${currSig.verdict}). ממתין לאישורך.`
+      reason: `סקירת הארכיטקטורה לשלב ${currSig.activePhaseIndex} הסתיימה (${currSig.verdict}). בהמתנה לאישור.`
     };
   }
 
@@ -153,7 +153,7 @@ export function detectMilestoneTransition(prevSig, currSig) {
     return {
       type: 'report_submitted',
       badgeText: '📋 דו״ח ביצוע מוכן!',
-      reason: `הסוכן סיים את הבנייה בשלב ${currSig.activePhaseIndex} והגיש דו״ח ביצוע לסקירה.`
+      reason: `הבנייה בשלב ${currSig.activePhaseIndex} הסתיימה והוגש דו״ח ביצוע לסקירה.`
     };
   }
 
@@ -257,7 +257,7 @@ export function runOrbitScan(projectPath, options = {}) {
         focusAlert = {
           type: 'phase_advanced',
           badgeText: options.simulateBadgeText || '🔔 שלב הושלם!',
-          reason: options.simulateReason || 'הסתיים שלב בפרויקט — ממתין למעבר שלך.',
+          reason: options.simulateReason || 'הסתיים שלב בפרויקט — מוכן למעבר.',
           detectedAt: Date.now(),
           unread: true
         };

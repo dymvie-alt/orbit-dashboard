@@ -115,6 +115,18 @@
       box-shadow: 0 2px 10px var(--color-primary-soft);
       border-width: 2px;
     }
+    .dock-remove-btn {
+      opacity: 0;
+      transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    }
+    .project-dock-btn:hover .dock-remove-btn {
+      opacity: 1;
+    }
+    .dock-remove-btn:hover {
+      background-color: rgba(244, 63, 94, 0.15) !important;
+      color: #f43f5e !important;
+      border-color: rgba(244, 63, 94, 0.4) !important;
+    }
 
     /* FOCUS BEACON ANIMATION (Milestone / Phase Completed Alert!) */
     @keyframes focus-beacon-glow {
@@ -196,11 +208,11 @@
       <div id="sidebarHeaderTitle" class="flex items-center gap-2 min-w-0">
         <span class="text-base">🗂️</span>
         <div class="truncate">
-          <div class="text-xs font-black tracking-tight" style="color: var(--color-text);">פרויקטים פעילים</div>
+          <div class="text-xs font-black tracking-tight" style="color: var(--color-text);">פרויקטים בתצוגה</div>
           <div id="sidebarProjectsCount" class="text-[10px] font-bold" style="color: var(--color-primary);">4 דשבורדים מחוברים</div>
         </div>
       </div>
-      <button onclick="toggleSidebarCollapse()" id="btnCollapseSidebar" title="כווץ / הרחב תפריט פרויקטים" class="w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold cursor-pointer shrink-0 transition" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
+      <button onclick="toggleSidebarCollapse()" id="btnCollapseSidebar" title="כיווץ או הרחבת סרגל הפרויקטים" class="w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold cursor-pointer shrink-0 transition" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
         ❮
       </button>
     </div>
@@ -214,11 +226,11 @@
     <div id="sidebarFooter" class="pt-2.5 mt-2 border-t space-y-1.5 shrink-0" style="border-color: var(--color-border);">
       <button onclick="openAddProjectModal()" class="w-full py-2 px-3 rounded-xl border font-extrabold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm" style="background: var(--color-primary); border-color: var(--color-primary); color: #ffffff;">
         <span class="text-sm leading-none">+</span>
-        <span class="sidebar-text-only">הוסף פרויקט להצגה</span>
+        <span class="sidebar-text-only">הוספת פרויקט לתצוגה</span>
       </button>
-      <button onclick="triggerDemoFocusBeacon()" title="הדגם התראת FOCUS של סיום שלב בפרויקט מקביל" class="w-full py-1.5 px-2.5 rounded-lg border font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
+      <button onclick="triggerDemoFocusBeacon()" title="הדגמת התראת FOCUS לסיום שלב בפרויקט מקביל" class="w-full py-1.5 px-2.5 rounded-lg border font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
         <span>✨</span>
-        <span class="sidebar-text-only">הדגם התראת סיום שלב</span>
+        <span class="sidebar-text-only">הדגמת התראת סיום שלב</span>
       </button>
     </div>
   </aside>
@@ -240,7 +252,7 @@
             <div id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
               <span>Orbit</span>
               <span class="opacity-40 font-light">/</span>
-              <span id="headerProjectTitle" style="color: var(--color-primary); font-weight: 900;">טוען פרויקט...</span>
+              <span id="headerProjectTitle" style="color: var(--color-primary); font-weight: 900;">טעינת פרויקט...</span>
             </div>
             <span id="headerAdapterBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
               מתאם שרגא
@@ -257,10 +269,10 @@
 
       <!-- Actions, Live Ticker & Theme Switcher -->
       <div class="flex items-center gap-3 shrink-0">
-        <!-- Global Unread Focus Banner Pill (if another project finished a phase!) -->
+        <!-- Global Unread Focus Banner Pill -->
         <div id="headerGlobalFocusAlert" onclick="jumpToFocusedProject()" class="hidden px-3 py-1.5 rounded-xl border text-xs font-extrabold items-center gap-1.5 cursor-pointer animate-pulse" style="background: rgba(245, 158, 11, 0.16); border-color: #f59e0b; color: #b45309;">
           <span>🔔</span>
-          <span id="headerGlobalFocusText">פרויקט סיים שלב! לחץ למעבר</span>
+          <span id="headerGlobalFocusText">הושלם שלב בפרויקט מקביל! למעבר</span>
         </div>
 
         <!-- Live Ticking Engine -->
@@ -277,16 +289,16 @@
 
         <!-- Quick Action Controls -->
         <div class="flex items-center gap-1.5">
-          <button id="btnThemeToggle" onclick="toggleTheme()" title="החלף מצב בהיר / כהה" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center justify-center cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          <button id="btnThemeToggle" onclick="toggleTheme()" title="החלפת מצב תצוגה (בהיר / כהה)" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center justify-center cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
             <span id="themeToggleIcon">🌙</span>
           </button>
 
-          <button id="btnManualRefresh" onclick="manualRefresh()" title="רענן נתונים עכשיו" class="px-2.5 py-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          <button id="btnManualRefresh" onclick="manualRefresh()" title="רענון נתונים כעת" class="px-2.5 py-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
             <span id="refreshIcon">↻</span>
-            <span class="hidden sm:inline">רענן</span>
+            <span class="hidden sm:inline">רענון</span>
           </button>
 
-          <button id="btnOpenBrowser" onclick="openExternal()" title="פתח בחלון דפדפן נפרד (מסך שני)" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          <button id="btnOpenBrowser" onclick="openExternal()" title="פתיחה בחלון דפדפן נפרד (מסך שני)" class="p-2 rounded-xl border font-bold transition-all text-xs flex items-center gap-1 cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
             <span>↗</span>
           </button>
 
@@ -306,10 +318,10 @@
     <div id="historyNoticeBanner" class="hidden px-3.5 py-1.5 rounded-xl border text-xs flex items-center justify-between shrink-0" dir="rtl" style="background-color: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-text);">
       <div class="flex items-center gap-2">
         <span>🕰️</span>
-        <span>אתה צופה בתמונת מצב של: <strong id="historyPhaseTitle">שלב 0</strong></span>
+        <span>תצוגת מצב של: <strong id="historyPhaseTitle">שלב 0</strong></span>
       </div>
       <button onclick="resetToActivePhase()" class="text-xs font-bold underline cursor-pointer" style="color: var(--color-primary);">
-        חזור לשלב הפעיל כעת (שלב <span id="activePhaseResetNum">0</span>) ➔
+        חזרה לשלב הפעיל כעת (שלב <span id="activePhaseResetNum">0</span>) ➔
       </button>
     </div>
 
@@ -337,7 +349,7 @@
             </div>
 
             <h2 id="col1PhaseTitle" class="text-base sm:text-lg font-black leading-snug text-right" style="color: var(--color-text);">
-              טוען נתונים...
+              טעינת נתונים...
             </h2>
           </div>
 
@@ -348,7 +360,7 @@
               <span>מה קורה בשלב הזה (מהות ומשמעות):</span>
             </div>
             <p id="col1PhaseDesc" class="text-xs sm:text-sm leading-relaxed font-medium text-right" dir="rtl" style="color: var(--color-text);">
-              טוען את תיאור הפאזה והמטרות המרכזיות שלה...
+              טעינת תיאור הפאזה והמטרות המרכזיות שלה...
             </p>
           </div>
 
@@ -390,7 +402,7 @@
                 מנוע אמת ורכיבי השלב
               </span>
               <h3 id="col2ScopeTitle" class="text-sm sm:text-base font-black text-right mt-0.5" style="color: var(--color-text);">
-                מה בונים בשלב הזה (במבט חטוף):
+                מה נבנה בשלב הזה (במבט חטוף):
               </h3>
             </div>
             <div class="flex items-center gap-1.5 flex-wrap">
@@ -403,9 +415,9 @@
 
           <!-- Helper Hint -->
           <div class="text-[11px] flex items-center justify-between px-1 shrink-0" style="color: var(--color-text-muted);">
-            <span>לחץ על כל שורה לפתיחת הפירוט הטכני המלא:</span>
+            <span>לחיצה על כל שורה תציג את הפירוט הטכני המלא:</span>
             <button id="btnToggleAllDetails" onclick="toggleAllDeliverables()" class="text-[11px] font-bold underline cursor-pointer" style="color: var(--color-primary);">
-              הרחב הכל ▾
+              הרחבת הכל ▾
             </button>
           </div>
 
@@ -420,7 +432,7 @@
           <div class="p-2.5 rounded-xl border flex items-center justify-between text-xs" style="background-color: var(--color-bg); border-color: var(--color-border);">
             <div class="flex flex-col text-right">
               <span class="text-[11px] font-bold" style="color: var(--color-text-muted);">סטטוס ביקורת ארכיטקטורה ואיכות:</span>
-              <span id="verdictLabel" class="text-xs sm:text-sm font-black mt-0.5" style="color: var(--color-text);">ממתין לסיום הבנייה</span>
+              <span id="verdictLabel" class="text-xs sm:text-sm font-black mt-0.5" style="color: var(--color-text);">בהמתנה לסיום הבנייה</span>
             </div>
             <span id="verdictBadge" class="px-2.5 py-1 rounded-full text-xs font-extrabold border shrink-0" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
               בביצוע
@@ -451,7 +463,7 @@
               השלב המיידי לביצוע:
             </div>
             <div id="col3NextBody" class="text-xs sm:text-sm leading-relaxed font-medium text-right" dir="rtl" style="color: var(--color-text);">
-              טוען הנחיות פעולה...
+              טעינת הנחיות פעולה...
             </div>
           </div>
 
@@ -464,7 +476,7 @@
                 <span id="promptToggleArrow" class="text-[10px]">▾</span>
               </button>
               <button onclick="copyPromptText()" class="text-[11px] font-bold px-2 py-0.5 rounded-lg border transition cursor-pointer" style="background: var(--color-surface); color: var(--color-text); border-color: var(--color-border);">
-                <span id="copyBtnText">העתק 📋</span>
+                <span id="copyBtnText">העתקה 📋</span>
               </button>
             </div>
             <div id="col3PromptDrawer" class="hidden px-2.5 pb-2.5">
@@ -486,7 +498,47 @@
 
   </div>
 
-  <!-- ==================== 4. ADD PROJECT / FOLDER PICKER MODAL ==================== -->
+  <!-- ==================== 4. REMOVE PROJECT WARNING / CONFIRMATION MODAL ==================== -->
+  <div id="removeProjectModal" onclick="closeRemoveProjectModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+    <div class="orbit-card max-w-md w-full p-6 space-y-4 shadow-2xl relative select-text text-right" onclick="event.stopPropagation()">
+      <button onclick="closeRemoveProjectModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+        ✕
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-sm shrink-0 border" style="background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.4); color: #d97706;">
+          ⚠️
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-black" style="color: var(--color-text);">הסרת פרויקט מסרגל התצוגה</h2>
+          <div id="removeModalProjectName" class="text-xs font-extrabold" style="color: var(--color-primary);">פרויקט</div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl border text-xs sm:text-sm leading-relaxed space-y-2" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
+        <p class="font-bold">
+          האם להסיר את הפרויקט מסרגל הפרויקטים בדשבורד?
+        </p>
+        <p style="color: var(--color-text-muted);">
+          <strong>חשוב לדעת:</strong> הפרויקט עצמו וקובצי הקוד במחשב <strong>לא ייפגעו כלל</strong> ולא יימחקו. פעולה זו מסירה את הפרויקט מתצוגת הסרגל כאן בלבד.
+        </p>
+        <p class="text-xs" style="color: var(--color-text-muted);">
+          ניתן להחזיר את הפרויקט לתצוגה בכל עת דרך כפתור <strong>"+ הוספת פרויקט לתצוגה"</strong>.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t" style="border-color: var(--color-border);">
+        <button onclick="closeRemoveProjectModal()" class="px-4 py-2 rounded-xl border font-bold text-xs transition cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
+          ביטול
+        </button>
+        <button onclick="confirmRemoveProjectFromDock()" class="px-4 py-2 rounded-xl text-white font-extrabold text-xs transition cursor-pointer shadow-sm" style="background: #e11d48;">
+          אישור והסרה מהתצוגה
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. ADD PROJECT / FOLDER PICKER MODAL ==================== -->
   <div id="addProjectModal" onclick="closeAddProjectModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
     <div class="orbit-card max-w-xl w-full p-6 space-y-4 shadow-2xl relative select-text text-right" onclick="event.stopPropagation()">
       <button onclick="closeAddProjectModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
@@ -498,15 +550,15 @@
           📁
         </div>
         <div>
-          <h2 class="text-lg font-black" style="color: var(--color-text);">בחר תיקייה של הפרויקט להצגה</h2>
-          <div class="text-xs font-semibold" style="color: var(--color-primary);">הוספת דשבורד לסרגל הפרויקטים או מעבר מהיר</div>
+          <h2 class="text-lg font-black" style="color: var(--color-text);">בחירת תיקיית פרויקט להצגה</h2>
+          <div class="text-xs font-semibold" style="color: var(--color-primary);">הוספת דשבורד לסרגל הפרויקטים, מעבר מהיר או שחזור פרויקט שהוסר</div>
         </div>
       </div>
 
-      <!-- 1. Auto-Discovered Projects in Workspace Roots -->
+      <!-- 1. Auto-Discovered & Hidden Projects in Workspace Roots -->
       <div class="space-y-2">
         <label class="text-xs font-extrabold block" style="color: var(--color-text);">
-          פרויקטים שזוהו אוטומטית במחשב שלך (לחיצה להצגה / חיבור מיידי):
+          פרויקטים שזוהו במחשב (לחיצה להצגה או להחזרה לסרגל):
         </label>
         <div id="discoveredProjectsList" class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
           <!-- Populated dynamically by renderDiscoveredProjects() -->
@@ -516,10 +568,10 @@
       <!-- 2. Native Folder Picker / Custom Path Input -->
       <div class="p-4 rounded-xl border space-y-3" style="background: var(--color-bg); border-color: var(--color-border);">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-extrabold" style="color: var(--color-text);">או בחר תיקייה אחרת מהמחשב:</span>
+          <span class="text-xs font-extrabold" style="color: var(--color-text);">או בחירת תיקייה אחרת מהמחשב:</span>
           <label class="px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition flex items-center gap-1.5" style="background: var(--color-surface); border-color: var(--color-primary); color: var(--color-primary);">
             <span>📂</span>
-            <span>פתח סייר תיקיות...</span>
+            <span>פתיחת סייר תיקיות...</span>
             <input type="file" id="nativeFolderPicker" webkitdirectory directory class="hidden" onchange="handleNativeFolderPick(event)">
           </label>
         </div>
@@ -527,22 +579,22 @@
         <div class="flex items-center gap-2">
           <input type="text" id="customProjectPathInput" dir="ltr" placeholder="C:\CLAUDE PROJECTS\my-new-project" class="flex-1 px-3 py-2 rounded-lg border text-xs font-mono text-left" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
           <button onclick="addCustomProjectPath()" class="px-4 py-2 rounded-lg text-white font-bold text-xs cursor-pointer shrink-0" style="background: var(--color-primary);">
-            חבר פרויקט
+            חיבור פרויקט
           </button>
         </div>
         <div id="addProjectFeedback" class="hidden text-xs font-bold p-2 rounded-lg border" style="background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary);"></div>
       </div>
 
       <div class="text-xs flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
-        <span>טיפ: ניתן לדלג בין הפרויקטים גם באמצעות מקשי הספרות <code>1</code> עד <code>9</code> במקלדת.</span>
+        <span>טיפ: ניתן לעבור בין הפרויקטים גם באמצעות מקשי הספרות <code>1</code> עד <code>9</code> במקלדת.</span>
         <button onclick="closeAddProjectModal()" class="px-4 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);">
-          סגור
+          סגירה
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 5. ABOUT MODAL DRAWER ('?' Modal) ==================== -->
+  <!-- ==================== 6. ABOUT MODAL DRAWER ('?' Modal) ==================== -->
   <div id="aboutModal" onclick="closeAboutModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
     <div class="orbit-card max-w-xl w-full p-6 space-y-4 shadow-2xl relative select-text text-right" onclick="event.stopPropagation()">
       <button onclick="closeAboutModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold transition cursor-pointer" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
@@ -562,10 +614,10 @@
       <div class="p-4 rounded-xl border text-sm leading-relaxed space-y-2" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text);">
         <strong class="block font-bold">שליטה בכל הפרויקטים מחלון אחד ("מעוף הציפור"):</strong>
         <p>
-          Orbit Dashboard מאפשר לך לעקוב במקביל אחרי מספר פרויקטים פעילים מתוך חלון אחד קבוע וללא גלילה. סרגל הפרויקטים האנכי בימין המסך מציג את כל הפרויקטים המחוברים ומתאים את גובה הכפתורים אוטומטית.
+          Orbit Dashboard מאפשר מעקב במקביל אחר מספר פרויקטים פעילים מתוך חלון אחד קבוע וללא גלילה. סרגל הפרויקטים האנכי בימין המסך מציג את הפרויקטים המחוברים ומתאים את גובה הכפתורים אוטומטית.
         </p>
         <p>
-          <strong>מנוע מיקוד חכם (Focus Beacon):</strong> כאשר פרויקט מקביל מסיים שלב, עובר פאזה או מגיש דו״ח ביצוע, הכפתור שלו בסרגל הימני יואר אוטומטית במסגרת זהובה כדי שתדע לעבור אליו בלחיצה אחת.
+          <strong>מנוע מיקוד חכם (Focus Beacon):</strong> כאשר פרויקט מקביל מסיים שלב, עובר פאזה או מגיש דו״ח ביצוע, הכפתור שלו בסרגל הימני מואר אוטומטית במסגרת זהובה למעבר מהיר בלחיצה אחת.
         </p>
       </div>
 
@@ -587,17 +639,18 @@
       <div class="text-xs flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border); color: var(--color-text-muted);">
         <span>מקשי קיצור: <code>1-9</code> למעבר בין פרויקטים · <code>T</code> למצב כהה/בהיר · <code>R</code> לרענון</span>
         <button onclick="closeAboutModal()" class="px-4 py-1.5 rounded-xl text-white font-bold text-xs transition cursor-pointer" style="background: var(--color-primary);">
-          סגור
+          סגירה
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 6. JAVASCRIPT MULTI-PROJECT HUB ENGINE ==================== -->
+  <!-- ==================== 7. JAVASCRIPT MULTI-PROJECT HUB ENGINE ==================== -->
   <script>
     let orbitState = window.ORBIT_DATA || null;
     let orbitHubData = window.ORBIT_HUB || null;
     let currentProjectHash = null;
+    let pendingRemoveHash = null;
     let selectedPhaseIndex = null;
     let lastUpdatedTimestamp = Date.now();
     let isDarkMode = false;
@@ -605,12 +658,15 @@
     let expandedSet = new Set();
     let allExpanded = false;
 
-    // Track acknowledged alerts per project hash in localStorage + memory
+    // Track acknowledged alerts & dismissed (hidden from dock) projects in localStorage
     let acknowledgedAlerts = {};
+    let dismissedProjects = {};
     try {
       acknowledgedAlerts = JSON.parse(localStorage.getItem('orbit_ack_alerts') || '{}');
+      dismissedProjects = JSON.parse(localStorage.getItem('orbit_dismissed_projects') || '{}');
     } catch {
       acknowledgedAlerts = {};
+      dismissedProjects = {};
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -622,7 +678,14 @@
       }
 
       if (orbitHubData && orbitHubData.projects) {
-        currentProjectHash = orbitHubData.lastSelectedHash || Object.keys(orbitHubData.projects)[0];
+        const visibleHashes = getVisibleProjectHashes();
+        if (orbitHubData.lastSelectedHash && !dismissedProjects[orbitHubData.lastSelectedHash] && orbitHubData.projects[orbitHubData.lastSelectedHash]) {
+          currentProjectHash = orbitHubData.lastSelectedHash;
+        } else if (visibleHashes.length > 0) {
+          currentProjectHash = visibleHashes[0];
+        } else {
+          currentProjectHash = Object.keys(orbitHubData.projects)[0];
+        }
         if (currentProjectHash && orbitHubData.projects[currentProjectHash]) {
           orbitState = orbitHubData.projects[currentProjectHash];
         }
@@ -643,6 +706,7 @@
         if (e.key === 'Escape') {
           closeAboutModal();
           closeAddProjectModal();
+          closeRemoveProjectModal();
         }
         if (document.activeElement.tagName === 'INPUT') return;
 
@@ -652,10 +716,10 @@
         if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
           manualRefresh();
         }
-        // Number keys 1-9 to switch between projects quickly!
+        // Number keys 1-9 to switch between visible projects quickly
         if (/^[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && orbitHubData && orbitHubData.projects) {
           const idx = parseInt(e.key, 10) - 1;
-          const hashes = getSortedProjectHashes();
+          const hashes = getVisibleProjectHashes();
           if (hashes[idx]) {
             switchToProject(hashes[idx]);
           }
@@ -663,12 +727,11 @@
       });
     });
 
-    function getSortedProjectHashes() {
+    function getAllSortedProjectHashes() {
       if (!orbitHubData || !orbitHubData.projects) return [];
       return Object.keys(orbitHubData.projects).sort((a, b) => {
         const pa = orbitHubData.projects[a];
         const pb = orbitHubData.projects[b];
-        // Active projects before completed ones
         const aDone = (pa.activePhaseIndex ?? 0) >= (pa.phases || []).length;
         const bDone = (pb.activePhaseIndex ?? 0) >= (pb.phases || []).length;
         if (aDone !== bDone) return aDone ? 1 : -1;
@@ -676,12 +739,15 @@
       });
     }
 
+    function getVisibleProjectHashes() {
+      return getAllSortedProjectHashes().filter(h => !dismissedProjects[h]);
+    }
+
     function hasActiveFocusAlert(hash) {
       if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return null;
       const proj = orbitHubData.projects[hash];
       const alert = proj.focusAlert;
       if (!alert || !alert.unread) return null;
-      // Check if user already clicked and acknowledged this exact alert timestamp
       const ackTime = acknowledgedAlerts[hash] || 0;
       if (alert.detectedAt && ackTime >= alert.detectedAt) return null;
       return alert;
@@ -699,9 +765,18 @@
       }
     }
 
-    // Switch between projects in the single window (0ms instant switch!)
+    // Switch between projects in the single window
     function switchToProject(hash) {
       if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return;
+
+      // If project was previously dismissed/hidden, restore it to the dock
+      if (dismissedProjects[hash]) {
+        delete dismissedProjects[hash];
+        try {
+          localStorage.setItem('orbit_dismissed_projects', JSON.stringify(dismissedProjects));
+        } catch {}
+      }
+
       currentProjectHash = hash;
       orbitState = orbitHubData.projects[hash];
       selectedPhaseIndex = orbitState.activePhaseIndex ?? 0;
@@ -709,26 +784,70 @@
       allExpanded = false;
       updateToggleAllBtnText();
 
-      // Acknowledge any Focus Beacon alert on this project now that the user switched to it!
       acknowledgeFocusAlert(hash);
 
       initDashboard(orbitState);
       renderProjectDock();
     }
 
-    // Render Right Vertical Project Sidebar Dock (Adaptive Height X Number of Projects)
+    // Open Remove Project Confirmation Modal
+    function requestRemoveProject(event, hash) {
+      event.stopPropagation();
+      if (!orbitHubData || !orbitHubData.projects || !orbitHubData.projects[hash]) return;
+      pendingRemoveHash = hash;
+      const proj = orbitHubData.projects[hash];
+      const nameEl = document.getElementById('removeModalProjectName');
+      if (nameEl) {
+        nameEl.textContent = `פרויקט: ${proj.projectName || 'ללא שם'}`;
+      }
+      document.getElementById('removeProjectModal').classList.remove('hidden');
+    }
+
+    function closeRemoveProjectModal() {
+      pendingRemoveHash = null;
+      document.getElementById('removeProjectModal').classList.add('hidden');
+    }
+
+    function confirmRemoveProjectFromDock() {
+      if (!pendingRemoveHash) return;
+      const hashToRemove = pendingRemoveHash;
+      dismissedProjects[hashToRemove] = Date.now();
+      try {
+        localStorage.setItem('orbit_dismissed_projects', JSON.stringify(dismissedProjects));
+      } catch {}
+
+      closeRemoveProjectModal();
+
+      const visibleHashes = getVisibleProjectHashes();
+      if (currentProjectHash === hashToRemove && visibleHashes.length > 0) {
+        switchToProject(visibleHashes[0]);
+      } else {
+        renderProjectDock();
+      }
+    }
+
+    // Render Right Vertical Project Sidebar Dock
     function renderProjectDock() {
       const container = document.getElementById('projectDockList');
       if (!container) return;
       container.innerHTML = '';
 
-      const hashes = getSortedProjectHashes();
+      const hashes = getVisibleProjectHashes();
       const countEl = document.getElementById('sidebarProjectsCount');
       if (countEl) {
-        countEl.textContent = `${hashes.length} דשבורדים מחוברים`;
+        countEl.textContent = `${hashes.length} דשבורדים פעילים`;
       }
 
-      // Adaptive sizing based on number of projects so they fit without scrolling!
+      if (hashes.length === 0) {
+        container.innerHTML = `
+          <div class="p-3 rounded-xl border text-center text-xs space-y-2" style="background: var(--color-bg); border-color: var(--color-border); color: var(--color-text-muted);">
+            <div>כל הפרויקטים הוסרו מהתצוגה.</div>
+            <button onclick="openAddProjectModal()" class="px-2.5 py-1 rounded-lg font-bold text-white cursor-pointer" style="background: var(--color-primary);">+ הוספת פרויקט</button>
+          </div>
+        `;
+        return;
+      }
+
       const isCompactDock = hashes.length >= 6;
       const padClass = isCompactDock ? 'p-2' : 'p-2.5';
 
@@ -767,7 +886,6 @@
         const projPrimaryColor = proj.theme?.primary || 'var(--color-primary)';
 
         if (isSidebarCollapsed) {
-          // Collapsed Icon-Only Mode
           const initials = (proj.projectName || 'P').substring(0, 2).toUpperCase();
           btn.innerHTML = `
             <div class="flex flex-col items-center justify-center py-1 relative">
@@ -779,14 +897,18 @@
           `;
           btn.title = `${proj.projectName} (${phaseSummaryText})${focusAlert ? ' — ' + focusAlert.badgeText : ''}`;
         } else {
-          // Expanded Full Card Mode
           btn.innerHTML = `
-            <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center justify-between gap-1">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="w-2.5 h-2.5 rounded-full shrink-0 ${focusAlert ? 'animate-ping' : ''}" style="background-color: ${statusDotColor};"></span>
                 <span class="font-black text-xs sm:text-sm truncate" style="color: var(--color-text);">${formatRtlSafe(proj.projectName || 'פרויקט')}</span>
               </div>
-              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${idx + 1}</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${idx + 1}</span>
+                <button onclick="requestRemoveProject(event, '${hash}')" title="הסרת הפרויקט מתצוגת הסרגל (ללא פגיעה בקובצי הפרויקט)" class="dock-remove-btn w-5 h-5 rounded border flex items-center justify-center text-[10px] font-bold cursor-pointer" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div class="flex items-center justify-between mt-1.5 text-[11px]">
@@ -806,14 +928,13 @@
         container.appendChild(btn);
       });
 
-      // Update Global Header Banner & Page Title if any background project has an active Focus Alert!
       const globalAlertEl = document.getElementById('headerGlobalFocusAlert');
       const globalAlertText = document.getElementById('headerGlobalFocusText');
       if (totalFocusedCount > 0 && globalAlertEl && globalAlertText) {
         globalAlertEl.classList.remove('hidden');
         globalAlertEl.classList.add('flex');
         globalAlertEl.dataset.targetHash = firstFocusedHash;
-        globalAlertText.textContent = `🔔 ${firstFocusedName}: שלב הושלם! לחץ למעבר`;
+        globalAlertText.textContent = `🔔 ${firstFocusedName}: שלב הושלם! למעבר מהיר`;
         document.title = `🔔 (${totalFocusedCount}) Orbit — ${orbitState?.projectName || 'מרכז בקרה'}`;
       } else {
         if (globalAlertEl) {
@@ -855,25 +976,23 @@
       renderProjectDock();
     }
 
-    // Demo trigger so the user can test and see the Focus Beacon live at any time!
     function triggerDemoFocusBeacon() {
       if (!orbitHubData || !orbitHubData.projects) return;
-      const hashes = getSortedProjectHashes().filter(h => h !== currentProjectHash);
+      const hashes = getVisibleProjectHashes().filter(h => h !== currentProjectHash);
       if (hashes.length === 0) return;
 
       const targetHash = hashes[0];
       const targetProj = orbitHubData.projects[targetHash];
       targetProj.focusAlert = {
         type: 'phase_advanced',
-        badgeText: '🔔 שלב הושלם! עבור לכאן',
-        reason: 'הסתיים שלב בפרויקט והוגש דו״ח ביצוע — ממתין לבדיקתך.',
+        badgeText: '🔔 שלב הושלם! למעבר',
+        reason: 'הסתיים שלב בפרויקט והוגש דו״ח ביצוע — מוכן לבדיקה.',
         detectedAt: Date.now() + 1000,
         unread: true
       };
       renderProjectDock();
     }
 
-    // Add Project Modal & Folder Selection
     function openAddProjectModal() {
       renderDiscoveredProjects();
       const feedback = document.getElementById('addProjectFeedback');
@@ -894,16 +1013,19 @@
       const registeredHashes = new Set(Object.keys(orbitHubData?.projects || {}));
 
       if (candidates.length === 0) {
-        listEl.innerHTML = '<div class="text-xs p-3 text-center" style="color: var(--color-text-muted);">לא נמצאו תיקיות נוספות. השתמש בתיבת הבחירה למטה.</div>';
+        listEl.innerHTML = '<div class="text-xs p-3 text-center" style="color: var(--color-text-muted);">לא נמצאו תיקיות נוספות. ניתן להשתמש בתיבת הבחירה למטה.</div>';
         return;
       }
 
       candidates.forEach(cand => {
         const isRegistered = registeredHashes.has(cand.projectHash);
+        const isDismissed = Boolean(dismissedProjects[cand.projectHash]);
+        const isVisibleInDock = isRegistered && !isDismissed;
+
         const item = document.createElement('div');
         item.className = 'p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition cursor-pointer';
-        item.style.backgroundColor = isRegistered ? 'var(--color-primary-soft)' : 'var(--color-bg)';
-        item.style.borderColor = isRegistered ? 'var(--color-primary)' : 'var(--color-border)';
+        item.style.backgroundColor = isVisibleInDock ? 'var(--color-primary-soft)' : 'var(--color-bg)';
+        item.style.borderColor = isVisibleInDock ? 'var(--color-primary)' : 'var(--color-border)';
 
         item.onclick = () => {
           if (isRegistered) {
@@ -915,9 +1037,16 @@
           }
         };
 
+        let actionBadgeText = '+ הוספה לתצוגה';
+        if (isVisibleInDock) {
+          actionBadgeText = 'פעיל בסרגל ✓';
+        } else if (isDismissed) {
+          actionBadgeText = '↺ החזרה לתצוגה';
+        }
+
         item.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0">
-            <span class="text-base">${isRegistered ? '🛰️' : '📁'}</span>
+            <span class="text-base">${isVisibleInDock ? '🛰️' : (isDismissed ? '👁️‍🗨️' : '📁')}</span>
             <div class="min-w-0 text-right">
               <div class="font-black text-xs sm:text-sm truncate" style="color: var(--color-text);">${formatRtlSafe(cand.folderName)}</div>
               <div class="text-[10px] font-mono truncate" dir="ltr" style="color: var(--color-text-muted);">${formatRtlSafe(cand.projectPath)}</div>
@@ -925,8 +1054,8 @@
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold border" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${formatRtlSafe(cand.typeBadge)}</span>
-            <span class="px-2.5 py-1 rounded-lg font-extrabold text-[11px]" style="background: ${isRegistered ? 'var(--color-surface)' : 'var(--color-primary)'}; color: ${isRegistered ? 'var(--color-primary)' : '#fff'};">
-              ${isRegistered ? 'פעיל בסרגל ✓' : '+ הוסף לדשבורד'}
+            <span class="px-2.5 py-1 rounded-lg font-extrabold text-[11px]" style="background: ${isVisibleInDock ? 'var(--color-surface)' : 'var(--color-primary)'}; color: ${isVisibleInDock ? 'var(--color-primary)' : '#fff'};">
+              ${actionBadgeText}
             </span>
           </div>
         `;
@@ -942,7 +1071,6 @@
       const relPath = firstFile.webkitRelativePath || '';
       const folderName = relPath.split('/')[0] || firstFile.name;
 
-      // Check if this folder matches one of our known candidate projects or existing projects
       const candidates = orbitHubData?.candidateProjects || [];
       const matched = candidates.find(c => c.folderName.toLowerCase() === folderName.toLowerCase());
 
@@ -962,7 +1090,6 @@
       const rawPath = explicitPath || (inputEl ? inputEl.value.trim() : '');
       if (!rawPath) return;
 
-      // Check if already in orbitHubData.projects by path or name
       if (orbitHubData && orbitHubData.projects) {
         for (const [h, p] of Object.entries(orbitHubData.projects)) {
           if (
@@ -976,7 +1103,6 @@
         }
       }
 
-      // Create an instant live entry in the Hub so the user can view it immediately
       const folderName = explicitName || rawPath.split(/[\\/]/).filter(Boolean).pop() || 'New Project';
       const tempHash = 'custom_' + Math.random().toString(36).substring(2, 8);
 
@@ -1048,9 +1174,12 @@
             orbitHubData = hubData;
             if (currentProjectHash && orbitHubData.projects && orbitHubData.projects[currentProjectHash]) {
               orbitState = orbitHubData.projects[currentProjectHash];
-            } else if (orbitHubData.lastSelectedHash && orbitHubData.projects?.[orbitHubData.lastSelectedHash]) {
-              currentProjectHash = orbitHubData.lastSelectedHash;
-              orbitState = orbitHubData.projects[currentProjectHash];
+            } else {
+              const vis = getVisibleProjectHashes();
+              if (vis.length > 0) {
+                currentProjectHash = vis[0];
+                orbitState = orbitHubData.projects[currentProjectHash];
+              }
             }
             lastUpdatedTimestamp = orbitState?.timestamp || Date.now();
             initDashboard(orbitState);
@@ -1227,13 +1356,13 @@
 
       renderDeliverables(phase.deliverables || [], phase);
 
-      const verdict = phase.verdict || (phase.status === 'done' || phase.status === 'completed' ? 'אושר מלא ✓' : 'ממתין לסיום הבנייה');
+      const verdict = phase.verdict || (phase.status === 'done' || phase.status === 'completed' ? 'אושר מלא ✓' : 'בהמתנה לסיום הבנייה');
       document.getElementById('verdictLabel').textContent = verdict;
       document.getElementById('verdictBadge').textContent = phase.status === 'completed' || phase.status === 'done' ? 'אושר ✓' : (isActive ? 'בבנייה ⚡' : 'מתוכנן');
 
       document.getElementById('col3NextActionTitle').textContent = phase.nextActionHeader || 'מה עושים עכשיו?';
       document.getElementById('col3NextHeader').textContent = phase.nextActionSub || (isActive ? 'השלב המיידי לביצוע מול הסוכן:' : 'סטטוס שלב זה:');
-      document.getElementById('col3NextBody').textContent = (phase.nextActionBody || (isActive ? 'המשך בביצוע המשימות הפעילות בסבב הנוכחי.' : 'שלב זה הושלם או ממתין לתורו.')).replace(/<\/?code>/g, '');
+      document.getElementById('col3NextBody').textContent = (phase.nextActionBody || (isActive ? 'המשך ביצוע המשימות הפעילות בסבב הנוכחי.' : 'שלב זה הושלם או בהמתנה לתורו.')).replace(/<\/?code>/g, '');
       document.getElementById('col3CycleStage').textContent = phase.stageLabel || (isActive ? 'סשן בנייה פעיל' : 'בארכיון');
 
       const promptBox = document.getElementById('col3PromptContainer');
@@ -1318,7 +1447,7 @@
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               ${statusPillHtml}
-              ${hasDesc ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded border transition" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${isExpanded ? 'סגור ▴' : 'הרחב ▾'}</span>` : ''}
+              ${hasDesc ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded border transition" style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-muted);">${isExpanded ? 'סגירה ▴' : 'הרחבה ▾'}</span>` : ''}
             </div>
           </div>
           ${hasDesc && isExpanded ? `
@@ -1350,7 +1479,7 @@
     function updateToggleAllBtnText() {
       const btn = document.getElementById('btnToggleAllDetails');
       if (btn) {
-        btn.textContent = allExpanded ? 'כווץ הכל ▴' : 'הרחב הכל ▾';
+        btn.textContent = allExpanded ? 'כיווץ הכל ▴' : 'הרחבת הכל ▾';
       }
     }
 
@@ -1403,7 +1532,7 @@
       navigator.clipboard.writeText(code).then(() => {
         const btn = document.getElementById('copyBtnText');
         btn.textContent = 'הועתק! ✓';
-        setTimeout(() => { btn.textContent = 'העתק 📋'; }, 2000);
+        setTimeout(() => { btn.textContent = 'העתקה 📋'; }, 2000);
       });
     }
   </script>

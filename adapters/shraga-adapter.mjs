@@ -225,7 +225,7 @@ export class ShragaAdapter {
           verdict: pStatus === 'completed' ? 'אושר מלא (Approved)' : (pStatus === 'active' ? 'בסשן בנייה פעיל' : 'טרם החל'),
           nextActionHeader: pStatus === 'active' ? 'מה נדרש כעת מול Claude Code / הסוכן?' : `סטטוס פאזה ${pNum}:`,
           nextActionSub: pStatus === 'active' ? 'השלב המיידי לביצוע:' : 'מצב הפאזה:',
-          nextActionBody: pStatus === 'active' ? 'השלמת בניית רכיבי הליבה של הפאזה, אימות תנאי הקבלה (AC) והפקת דו״ח ביצוע (Report).' : (pStatus === 'completed' ? 'הפאזה הושלמה ואושרה במלואה ע״י שרגא.' : 'ממתין לסיום הפאזות הקודמות.')
+          nextActionBody: pStatus === 'active' ? 'השלמת בניית רכיבי הליבה של הפאזה, אימות תנאי הקבלה (AC) והפקת דו״ח ביצוע (Report).' : (pStatus === 'completed' ? 'הפאזה הושלמה ואושרה במלואה ע״י שרגא.' : 'בהמתנה לסיום הפאזות הקודמות.')
         });
       }
     }
@@ -286,8 +286,8 @@ export class ShragaAdapter {
           title: `שלב ${i}: יוגדר בתוכנית העבודה`,
           subtitle: '○ יוגדר ב-Plan.md',
           status: 'planned',
-          stageLabel: 'ממתין לאישור תוכנית העבודה ○',
-          description: `שלב ${i} יפורט אוטומטית ברגע שקובץ Plan.md יופק ויאושר ע״י שרגא.`,
+          stageLabel: 'בהמתנה לאישור תוכנית העבודה ○',
+          description: `שלב ${i} יפורט אוטומטית עם הפקת קובץ Plan.md ואישורו ע״י שרגא.`,
           deliverables: [
             { status: 'planned', title: `תכולת שלב ${i} תופיע לאחר אישור תוכנית העבודה`, desc: 'טרם הוגדר ב-Plan.md.' }
           ],
@@ -369,12 +369,12 @@ export class ShragaAdapter {
         activePhaseObj.stageLabel = `שלב 6-7: סקירת ארכיטקטורה הושלמה (${activePhaseObj.gateScore})`;
         activePhaseObj.nextActionHeader = `מה הצעד הבא מול שרגא?`;
         activePhaseObj.nextActionSub = `סיום פאזה ${activePhaseIndex}:`;
-        activePhaseObj.nextActionBody = `הסקירה הושלמה בהצלחה (${activePhaseObj.verdict}). לחזרה לסשן שרגא יש לכתוב "סיימתי" כדי לאשר את התנאים ולקדם את הפרויקט לפאזה ${activePhaseIndex + 1}.`;
+        activePhaseObj.nextActionBody = `הסקירה הושלמה בהצלחה (${activePhaseObj.verdict}). בחזרה לסשן שרגא יש לכתוב "סיימתי" לאישור התנאים ולקידום הפרויקט לפאזה ${activePhaseIndex + 1}.`;
       } else if (hasReport) {
-        activePhaseObj.stageLabel = `שלב 5: דו״ח ביצוע הוגש — ממתין לסקירה`;
+        activePhaseObj.stageLabel = `שלב 5: דו״ח ביצוע הוגש — בהמתנה לסקירה`;
         activePhaseObj.nextActionHeader = `מה הצעד הבא?`;
         activePhaseObj.nextActionSub = `סקירת ארכיטקטורה:`;
-        activePhaseObj.nextActionBody = `דו״ח הביצוע מוכן. יש להריץ סקירת ארכיטקטורה (/shraga-review) כדי לאמת עמידה בדרישות ובדיקות.`;
+        activePhaseObj.nextActionBody = `דו״ח הביצוע מוכן. יש להריץ סקירת ארכיטקטורה (/shraga-review) לאימות עמידה בדרישות ובבדיקות.`;
       } else if (hasPrompt) {
         activePhaseObj.stageLabel = `שלב 4: סשן בנייה פעיל (Build)`;
         activePhaseObj.nextActionHeader = `מה נדרש כעת מול Claude Code / הסוכן?`;
@@ -384,7 +384,7 @@ export class ShragaAdapter {
         activePhaseObj.stageLabel = `שלב 3: אפיון פאזה והפקת פרומפט`;
         activePhaseObj.nextActionHeader = `מה נדרש מול שרגא?`;
         activePhaseObj.nextActionSub = `הפקת פרומפט פאזה:`;
-        activePhaseObj.nextActionBody = `יש לבצע דיפ-דייב לפאזה ${activePhaseIndex} ולהפיק את פרומפט הבנייה בשרגא.`;
+        activePhaseObj.nextActionBody = `ביצוע העמקה (Deep Dive) לפאזה ${activePhaseIndex} והפקת פרומפט הבנייה בשרגא.`;
       }
     }
 

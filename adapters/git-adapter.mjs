@@ -94,8 +94,8 @@ export class GitAdapter {
         verdict: 'Active Dev',
         nextActionHeader: 'מה עושים עכשיו?',
         nextActionSub: 'המלצת Orbit:',
-        nextActionBody: 'המשך בפיתוח שוטף, או צור קובץ <code>Plan.md</code> כדי להפעיל סרגל פאזות ומפת דרכים מלאה.',
-        suggestedPrompt: 'בוא ניצור קובץ Plan.md כדי לנהל את המשך הפיתוח בפאזות מסודרות.'
+        nextActionBody: 'המשך פיתוח שוטף, או יצירת קובץ <code>Plan.md</code> להפעלת סרגל פאזות ומפת דרכים מלאה.',
+        suggestedPrompt: 'יצירת קובץ Plan.md לניהול המשך הפיתוח בפאזות מסודרות.'
       }
     ];
 
