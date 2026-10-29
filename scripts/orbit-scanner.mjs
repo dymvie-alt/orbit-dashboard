@@ -20,7 +20,7 @@ export function getProjectHash(projectPath) {
 }
 
 export function getOrbitBaseDir() {
-  const userHome = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\dymvi';
+  const userHome = process.env.USERPROFILE || process.env.HOME || '.';
   const baseDir = path.join(userHome, '.gemini', 'antigravity', 'orbit');
   if (!fs.existsSync(baseDir)) {
     fs.mkdirSync(baseDir, { recursive: true });
@@ -42,10 +42,14 @@ export function getStorageDir(projectPath) {
  * Strictly Read-Only.
  */
 export function discoverCandidateProjects() {
-  const userHome = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\dymvi';
+  const userHome = process.env.USERPROFILE || process.env.HOME || '.';
   const searchRoots = [
     'C:\\CLAUDE PROJECTS',
-    path.join(userHome, 'Documents', 'antigravity')
+    path.join(userHome, 'CLAUDE PROJECTS'),
+    path.join(userHome, 'Documents', 'CLAUDE PROJECTS'),
+    path.join(userHome, 'Documents', 'antigravity'),
+    path.join(userHome, 'Projects'),
+    path.join(userHome, 'Desktop')
   ];
 
   const candidates = [];

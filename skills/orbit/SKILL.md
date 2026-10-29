@@ -33,14 +33,14 @@ Orbit Dashboard is your intelligent development companion for Google Antigravity
 2. **Immediate Execution (Zero-Footprint):**
    Execute the background scanner:
    ```powershell
-   node "C:\Users\dymvi\.gemini\config\plugins\orbit-dashboard\scripts\orbit-scanner.mjs" --project "<target-path>" --frequency "<chosen-frequency>"
+   node "$env:USERPROFILE\.gemini\config\plugins\orbit-dashboard\scripts\orbit-scanner.mjs" --project "<target-path>" --frequency "<chosen-frequency>"
    ```
 
 3. **Presentation & Dual-Display:**
    - Report the detected adapter (`Shraga First-Class Harness`, `Plan.md Adapter`, or `Generic Git`).
    - Display the Active Phase, current stage, and test metrics.
-   - Provide the direct clickable link to open the standalone zero-scroll dashboard in an external browser for second-monitor workflows:
-     `[פתח את Orbit Dashboard בדפדפן / מסך שני](file:///<storageDir>/index.html)`
+   - Provide the direct clickable link to open the standalone zero-scroll Multi-Project Hub in an external browser for second-monitor workflows:
+     `[פתח את Orbit Multi-Project Hub בדפדפן](file:///<masterHubHtmlPath>)`
    - Also copy or save the artifact into the conversation artifact space if inline embed is preferred.
 
 4. **Background Daemon Scheduling:**
