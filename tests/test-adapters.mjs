@@ -43,7 +43,7 @@ function createShragaFixture() {
   fs.writeFileSync(path.join(sDir, 'reports', 'phase-1-report.md'), '# Phase 1 Report\n119 בדיקות עברו בהצלחה!');
   fs.writeFileSync(path.join(sDir, 'reviews', 'phase-1-review.md'), '# Phase 1 Review\nפסק דין: Approved with conditions');
   fs.writeFileSync(path.join(sDir, 'prompts', 'phase-2-prompt.md'), 'פתח מחשבון ריבית דריבית כולל סליידרים');
-  fs.writeFileSync(path.join(dir, 'DESIGN_SYSTEM.md'), '# Design\nPrimary Color: #7c3aed\nSecondary: #ce2570');
+  fs.writeFileSync(path.join(dir, 'DESIGN_SYSTEM.md'), '# Design\n| Token | HEX |\n|---|---|\n| `--primary` | `#7C3AED` |\n| `--bg` | `#F7F5F0` |');
 
   return dir;
 }

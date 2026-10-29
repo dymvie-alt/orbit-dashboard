@@ -6,27 +6,32 @@
 
 export class HebrewNormalizer {
   /**
-   * Normalizes phase titles (e.g. "Foundation", "Task Board (Core MVP)", "Balance Scale")
+   * Normalizes phase titles (e.g. "Foundation", "Task Board (Core MVP)", "UI with demo data")
    * @param {string} rawTitle
    * @param {number} phaseNum
-   * @returns {string} Natural Hebrew title with original technical terms
+   * @returns {string} Natural Hebrew title with original technical terms (Single non-duplicated prefix)
    */
   static normalizePhaseTitle(rawTitle, phaseNum = 0) {
-    if (!rawTitle) return `פאזה ${phaseNum}`;
+    if (!rawTitle) return `שלב ${phaseNum}`;
 
-    const trimmed = rawTitle.trim();
+    let trimmed = rawTitle.trim();
 
-    // If already primarily Hebrew, clean up and return
+    // Strip any existing leading "Phase X:", "פאזה X:", "שלב X:" to prevent duplication!
+    trimmed = trimmed.replace(/^(?:Phase|פאזה|שלב)\s*\d+[:\s\-]*/i, '').trim();
+
+    // If already primarily Hebrew, prefix cleanly and return
     const hebrewCharCount = (trimmed.match(/[\u0590-\u05FF]/g) || []).length;
     if (hebrewCharCount > trimmed.length * 0.4) {
-      return trimmed;
+      return `שלב ${phaseNum}: ${trimmed}`;
     }
 
     // Common phase title dictionaries
     const titleMap = [
-      { pattern: /foundation|setup|scaffold|infra/i, hebrew: 'תשתית ושלד (Foundation)' },
+      { pattern: /^foundation|^setup|^scaffold|^infra/i, hebrew: 'תשתית ושלד (Foundation)' },
       { pattern: /task\s*board.*core\s*mvp/i, hebrew: 'לוח משימות - ליבת המערכת (Core MVP)' },
-      { pattern: /core\s*mvp/i, hebrew: 'ליבת המערכת (Core MVP)' },
+      { pattern: /^core\s*mvp/i, hebrew: 'ליבת המערכת (Core MVP)' },
+      { pattern: /ui\s+with\s+demo\s+data/i, hebrew: 'ממשק משתמש עם נתוני הדגמה (UI with demo data)' },
+      { pattern: /admin\s+interface/i, hebrew: 'ממשק ניהול (Admin Interface)' },
       { pattern: /balance\s*scale/i, hebrew: 'מאזניים חיים (Balance Scale)' },
       { pattern: /carry[-\s]*over/i, hebrew: 'העברת משימות פתוחות (Carry-over)' },
       { pattern: /deployment.*production.*readiness/i, hebrew: 'פריסה ומוכנות לפרודקשן (Deployment)' },
@@ -39,7 +44,7 @@ export class HebrewNormalizer {
 
     for (const entry of titleMap) {
       if (entry.pattern.test(trimmed)) {
-        return entry.hebrew;
+        return `שלב ${phaseNum}: ${entry.hebrew}`;
       }
     }
 
@@ -51,7 +56,7 @@ export class HebrewNormalizer {
    * Translates stage badges and lifecycle states into natural Hebrew
    */
   static normalizeStage(stageStr) {
-    if (!stageStr) return 'סשן בנייה פעיל (Build)';
+    if (!stageStr) return 'שלב 4: סשן בנייה פעיל (Build)';
 
     const s = stageStr.toUpperCase();
     if (s.includes('BUILD')) return 'שלב 4: סשן בנייה פעיל (Build)';
@@ -87,7 +92,6 @@ export class HebrewNormalizer {
     if (!desc) return '';
     let out = desc.trim();
 
-    // Replace common English lead-ins
     out = out.replace(/^Objectives:\s*/i, 'יעדי הפאזה: ');
     out = out.replace(/^Features:\s*/i, 'תכולה ורכיבים: ');
     out = out.replace(/^The core feature:\s*/i, 'פיצ׳ר הליבה: ');

@@ -226,10 +226,40 @@ export class ShragaAdapter {
       const activePromptPath = path.join(promptsDir, `phase-${activePhaseIndex}-prompt.md`);
       if (fs.existsSync(activePromptPath)) {
         const promptContent = fs.readFileSync(activePromptPath, 'utf-8');
-        const activePhase = phases.find(p => p.phaseNum === activePhaseIndex);
-        if (activePhase) {
-          activePhase.suggestedPrompt = promptContent.substring(0, 450).trim() + (promptContent.length > 450 ? '...' : '');
+        const activePhaseObj = phases.find(p => p.phaseNum === activePhaseIndex);
+        if (activePhaseObj) {
+          activePhaseObj.suggestedPrompt = promptContent.substring(0, 450).trim() + (promptContent.length > 450 ? '...' : '');
         }
+      }
+    }
+
+    // 7. Accurately set Stage and Next Action based on artifacts lifecycle
+    const activePhaseObj = phases.find(p => p.phaseNum === activePhaseIndex);
+    if (activePhaseObj) {
+      const hasReview = fs.existsSync(path.join(shragaDir, 'reviews', `phase-${activePhaseIndex}-review.md`));
+      const hasReport = fs.existsSync(path.join(shragaDir, 'reports', `phase-${activePhaseIndex}-report.md`));
+      const hasPrompt = fs.existsSync(path.join(shragaDir, 'prompts', `phase-${activePhaseIndex}-prompt.md`));
+
+      if (hasReview) {
+        activePhaseObj.stageLabel = `שלב 6-7: סקירת ארכיטקטורה הושלמה (${activePhaseObj.gateScore})`;
+        activePhaseObj.nextActionHeader = `מה הצעד הבא מול שרגא?`;
+        activePhaseObj.nextActionSub = `סיום פאזה ${activePhaseIndex}:`;
+        activePhaseObj.nextActionBody = `הסקירה הושלמה בהצלחה (${activePhaseObj.verdict}). לחזרה לסשן שרגא יש לכתוב "סיימתי" כדי לאשר את התנאים ולקדם את הפרויקט לפאזה ${activePhaseIndex + 1}.`;
+      } else if (hasReport) {
+        activePhaseObj.stageLabel = `שלב 5: דו״ח ביצוע הוגש — ממתין לסקירה`;
+        activePhaseObj.nextActionHeader = `מה הצעד הבא?`;
+        activePhaseObj.nextActionSub = `סקירת ארכיטקטורה:`;
+        activePhaseObj.nextActionBody = `דו״ח הביצוע מוכן. יש להריץ סקירת ארכיטקטורה (/shraga-review) כדי לאמת עמידה בדרישות ובדיקות.`;
+      } else if (hasPrompt) {
+        activePhaseObj.stageLabel = `שלב 4: סשן בנייה פעיל (Build)`;
+        activePhaseObj.nextActionHeader = `מה נדרש כעת מול Claude Code / הסוכן?`;
+        activePhaseObj.nextActionSub = `השלב המיידי לביצוע:`;
+        activePhaseObj.nextActionBody = `השלמת משימות הבנייה, הרצת בדיקות מקומיות והפקת דו״ח ביצוע (report).`;
+      } else {
+        activePhaseObj.stageLabel = `שלב 3: אפיון פאזה והפקת פרומפט`;
+        activePhaseObj.nextActionHeader = `מה נדרש מול שרגא?`;
+        activePhaseObj.nextActionSub = `הפקת פרומפט פאזה:`;
+        activePhaseObj.nextActionBody = `יש לבצע דיפ-דייב לפאזה ${activePhaseIndex} ולהפיק את פרומפט הבנייה בשרגא.`;
       }
     }
 

@@ -1,9 +1,10 @@
-# 🛰️ Orbit Dashboard — Project Companion (v1.1.0)
+# 🛰️ Orbit Dashboard — Project Companion (v1.2.0)
 
 [![GitHub](https://img.shields.io/badge/GitHub-dymvie--alt%2Forbit--dashboard-indigo)](https://github.com/dymvie-alt/orbit-dashboard)
 [![QA Gate](https://img.shields.io/badge/QA%20Gate-100%25%20Passed-emerald)](https://github.com/dymvie-alt/orbit-dashboard)
 [![Zero-Footprint](https://img.shields.io/badge/Security-Zero--Footprint%20Read--Only-sky)](https://github.com/dymvie-alt/orbit-dashboard)
 [![Screen Budget](https://img.shields.io/badge/Layout-100dvh%20Zero--Scroll-violet)](https://github.com/dymvie-alt/orbit-dashboard)
+[![WCAG Contrast](https://img.shields.io/badge/Accessibility-WCAG%20AAA%20Contrast%20Enforced-teal)](https://github.com/dymvie-alt/orbit-dashboard)
 [![RTL & Hebrew](https://img.shields.io/badge/Language-Hebrew%20RTL%20%2B%20LTR%20Terms-amber)](https://github.com/dymvie-alt/orbit-dashboard)
 
 **Orbit Dashboard** הוא מלווה פיתוח חכם (Project Companion) עבור מערכת **Google Antigravity**, המעניק מבט-על רציף ("מעוף הציפור") על התקדמות הפרויקט בזמן אמת. המערכת פועלת ברקע באופן פסיבי ומאובטח לחלוטין (Read-Only) מבלי לשנות או לזהם אף קובץ בקוד שלך.

@@ -149,9 +149,11 @@
 
       <div>
         <div class="flex items-center gap-2">
-          <h1 id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
-            Orbit: <span id="headerProjectTitle" style="color: var(--color-primary);">טוען פרויקט...</span>
-          </h1>
+          <div id="projName" class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5" style="color: var(--color-text);">
+            <span>Orbit</span>
+            <span class="opacity-40 font-light">/</span>
+            <span id="headerProjectTitle" style="color: var(--color-primary); font-weight: 800;">טוען פרויקט...</span>
+          </div>
           <span id="headerAdapterBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border" style="background-color: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary);">
             מתאם שרגא (Shraga)
           </span>
@@ -643,7 +645,8 @@
       document.getElementById('col1StageBadge').textContent = phase.stageLabel || (isActive ? 'שלב 4: סשן בנייה פעיל (Build)' : (phase.status === 'done' ? 'הושלם ואושר ✓' : 'מתוכנן להמשך ○'));
       document.getElementById('col1StatusIndicator').textContent = isActive ? '⚡ פעיל כעת' : (phase.status === 'done' ? '✓ הושלם' : '○ מתוכנן');
 
-      document.getElementById('col1PhaseTitle').textContent = `שלב ${idx}: ${phase.title || 'ללא כותרת'}`;
+      const pTitleText = phase.title || 'ללא כותרת';
+      document.getElementById('col1PhaseTitle').textContent = pTitleText.startsWith('שלב') ? pTitleText : `שלב ${idx}: ${pTitleText}`;
       document.getElementById('col1PhaseDesc').textContent = phase.description || 'אין תיאור זמין עבור פאזה זו.';
 
       // Macro Progress
